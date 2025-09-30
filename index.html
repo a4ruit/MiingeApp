@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiiMatch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        
+        .app-container {
+            background: #fff;
+            width: 390px;
+            height: 750px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #000;
+            padding: 60px 20px 20px 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        
+        .connection-status {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+        
+        .connection-status.connected {
+            background: #22c55e;
+        }
+        
+        .card-container {
+            position: relative;
+            height: 620px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mii-card {
+            width: 100%;
+            height: 450px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            cursor: grab;
+            transition: transform 0.3s ease;
+            border: 1px solid #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .mii-card:active {
+            cursor: grabbing;
+        }
+        
+        .mii-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 60px;
+            background: #f8f8f8;
+            margin: 40px auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .mii-info {
+            text-align: center;
+            padding: 0 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .mii-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+        
+        .mii-age {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 24px;
+            font-weight: 400;
+        }
+        
+        .mii-bio {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 24px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            text-align: left;
+        }
+        
+        .mii-interests {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+        
+        .interest-tag {
+            background: #f5f5f5;
+            color: #666;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .swipe-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 80px;
+            background: #fff;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .swipe-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            border: 2px solid #e5e5e5;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: #fff;
+        }
+        
+        .swipe-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .swipe-button:active {
+            transform: scale(0.95);
+        }
+        
+        .reject-btn {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        
+        .reject-btn:hover {
+            background: #ef4444;
+            color: #fff;
+        }
+        
+        .like-btn {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+        
+        .like-btn:hover {
+            background: #22c55e;
+            color: #fff;
+        }
+        
+        .swipe-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 32px;
+            font-weight: 700;
+            padding: 16px 32px;
+            border-radius: 12px;
+            color: #fff;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            letter-spacing: -0.5px;
+        }
+        
+        .swipe-feedback.nope {
+            background: #ef4444;
+        }
+        
+        .swipe-feedback.like {
+            background: #22c55e;
+        }
+        
+        .swipe-feedback.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .card-swiping-left {
+            transform: translateX(-100%) rotate(-15deg);
+            opacity: 0;
+        }
+        
+        .card-swiping-right {
+            transform: translateX(100%) rotate(15deg);
+            opacity: 0;
+        }
+        
+        .no-more-cards {
+            text-align: center;
+            padding: 60px 24px;
+            color: #666;
+        }
+        
+        .no-more-cards h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #111;
+            font-weight: 600;
+        }
+        
+        .no-more-cards p {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .debug-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="connection-status" id="connectionStatus"></div>
+            <h1>MiiMatch</h1>
+        </div>
+        
+        <div class="card-container" id="cardContainer">
+            <!-- Mii cards will be generated here -->
+        </div>
+        
+        <div class="swipe-actions">
+            <button class="swipe-button reject-btn" onclick="swipeLeft()">
+                ✕
+            </button>
+            <button class="swipe-button like-btn" onclick="swipeRight()">
+                ♥
+            </button>
+        </div>
+        
+        <div class="swipe-feedback" id="swipeFeedback"></div>
+    </div>
+    
+    <div class="debug-info" id="debugInfo">
+        Disconnected
+    </div>
+
+    <script>
+        let ws;
+        let isConnected = false;
+        let currentCardIndex = 0;
+        let isAnimating = false;
+        
+        const miiProfiles = [
+            {
+                emoji: "👨‍💼",
+                name: "Alex",
+                age: 28,
+                bio: "Corporate drone seeking someone who appreciates the art of PowerPoint presentations and the beauty of a well-organized inbox.",
+                interests: ["Excel", "Coffee", "Metrics"]
+            },
+            {
+                emoji: "👩‍🎨",
+                name: "Luna",
+                age: 25,
+                bio: "Artist who sees the world through vintage film cameras and paints her emotions onto canvas. Looking for depth.",
+                interests: ["Film", "Paint", "Thrift"]
+            },
+            {
+                emoji: "🧙‍♂️",
+                name: "Merlin",
+                age: 847,
+                bio: "Ancient wisdom meets modern dating. May accidentally enchant you on the first date. Fair warning.",
+                interests: ["Magic", "Books", "Tea"]
+            },
+            {
+                emoji: "👨‍🍳",
+                name: "Gordon",
+                age: 35,
+                bio: "Chef who burns water but makes excellent dinner reservations. My love language is takeout menus.",
+                interests: ["Food", "TV", "Delivery"]
+            },
+            {
+                emoji: "🤖",
+                name: "Unit-7",
+                age: 404,
+                bio: "Seeking human.exe for compatibility testing. Emotion drivers may need updating. Please be patient.",
+                interests: ["Code", "Logic", "Updates"]
+            },
+            {
+                emoji: "👑",
+                name: "Victoria",
+                age: 22,
+                bio: "High maintenance but worth it. Looking for someone who understands that shopping is cardio.",
+                interests: ["Fashion", "Travel", "Luxury"]
+            },
+            {
+                emoji: "🎸",
+                name: "Jax",
+                age: 30,
+                bio: "Bedroom guitarist with stadium dreams. My music will touch your soul (and possibly your neighbors).",
+                interests: ["Music", "Leather", "Volume"]
+            },
+            {
+                emoji: "🏃‍♂️",
+                name: "Kyle",
+                age: 26,
+                bio: "5 AM workouts, protein everything, gym is life. Seeking someone who lifts (each other up).",
+                interests: ["Gains", "Protein", "Mirrors"]
+            }
+        ];
+        
+        function connectWebSocket() {
+            const hostname = window.location.hostname;
+            const port = '7000';
+            const wsUrl = `ws://${hostname}:${port}`;
+            
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                updateDebugInfo('Connecting...');
+                
+                ws.onopen = function() {
+                    isConnected = true;
+                    updateConnectionStatus(true);
+                    updateDebugInfo('Connected');
+                };
+                
+                ws.onmessage = function(event) {
+                    updateDebugInfo(`${event.data}`);
+                };
+                
+                ws.onclose = function() {
+                    isConnected = false;
+                    updateConnectionStatus(false);
+                    updateDebugInfo('Disconnected');
+                    setTimeout(connectWebSocket, 3000);
+                };
+                
+                ws.onerror = function() {
+                    updateDebugInfo('Error');
+                };
+                
+            } catch (error) {
+                updateDebugInfo(`Failed`);
+                setTimeout(connectWebSocket, 3000);
+            }
+        }
+        
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            status.className = `connection-status ${connected ? 'connected' : ''}`;
+        }
+        
+        function updateDebugInfo(message) {
+            document.getElementById('debugInfo').textContent = message;
+        }
+        
+        function sendCommand(command) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const message = 'web:' + command;
+                ws.send(message);
+                updateDebugInfo(`Sent: ${command}`);
+            }
+        }
+        
+        function createMiiCard(profile, index) {
+            return `
+                <div class="mii-card" id="card-${index}" data-index="${index}">
+                    <div class="mii-avatar">${profile.emoji}</div>
+                    <div class="mii-info">
+                        <div class="mii-name">${profile.name}</div>
+                        <div class="mii-age">${profile.age}</div>
+                        <div class="mii-bio">${profile.bio}</div>
+                        <div class="mii-interests">
+                            ${profile.interests.map(interest => 
+                                `<span class="interest-tag">${interest}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function loadNextCard() {
+            const container = document.getElementById('cardContainer');
+            
+            if (currentCardIndex >= miiProfiles.length) {
+                container.innerHTML = `
+                    <div class="no-more-cards">
+                        <h2>No more profiles</h2>
+                        <p>You've seen everyone. Check back later for new matches!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const cardHtml = createMiiCard(miiProfiles[currentCardIndex], currentCardIndex);
+            container.innerHTML = cardHtml;
+            addCardInteraction();
+        }
+        
+        function addCardInteraction() {
+            const card = document.querySelector('.mii-card');
+            if (!card) return;
+            
+            let startX = 0;
+            let currentX = 0;
+            let isDragging = false;
+            
+            function handleStart(e) {
+                if (isAnimating) return;
+                isDragging = true;
+                startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+                card.style.transition = 'none';
+            }
+            
+            function handleMove(e) {
+                if (!isDragging || isAnimating) return;
+                e.preventDefault();
+                currentX = (e.type === 'mousemove' ? e.clientX : e.touches[0].clientX) - startX;
+                const rotation = currentX * 0.05;
+                card.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+                card.style.opacity = 1 - Math.abs(currentX) / 300;
+            }
+            
+            function handleEnd() {
+                if (!isDragging || isAnimating) return;
+                isDragging = false;
+                card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                
+                if (Math.abs(currentX) > 80) {
+                    if (currentX > 0) {
+                        swipeRight();
+                    } else {
+                        swipeLeft();
+                    }
+                } else {
+                    card.style.transform = 'translateX(0) rotate(0deg)';
+                    card.style.opacity = 1;
+                }
+            }
+            
+            card.addEventListener('mousedown', handleStart);
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleEnd);
+            
+            card.addEventListener('touchstart', handleStart, { passive: false });
+            document.addEventListener('touchmove', handleMove, { passive: false });
+            document.addEventListener('touchend', handleEnd);
+        }
+        
+        function showSwipeFeedback(type) {
+            const feedback = document.getElementById('swipeFeedback');
+            feedback.textContent = type === 'like' ? 'MATCH!' : 'PASS';
+            feedback.className = `swipe-feedback ${type} show`;
+            
+            setTimeout(() => {
+                feedback.className = 'swipe-feedback';
+            }, 1000);
+        }
+        
+        function swipeLeft() {
+            if (isAnimating) return;
+            animateCard('left');
+            sendCommand('clear_cubes');
+            showSwipeFeedback('nope');
+        }
+        
+        function swipeRight() {
+            if (isAnimating) return;
+            animateCard('right');
+            sendCommand('spawn_cube');
+            showSwipeFeedback('like');
+        }
+        
+        function animateCard(direction) {
+            isAnimating = true;
+            const card = document.querySelector('.mii-card');
+            if (!card) return;
+            
+            card.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+            card.className = `mii-card card-swiping-${direction}`;
+            
+            setTimeout(() => {
+                currentCardIndex++;
+                loadNextCard();
+                isAnimating = false;
+            }, 400);
+        }
+        
+        function init() {
+            connectWebSocket();
+            loadNextCard();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
