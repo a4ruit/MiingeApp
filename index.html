@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiiMatch</title>
+    <title>MiingeApp</title>
     <style>
         * {
             margin: 0;
@@ -280,7 +280,7 @@
     <div class="app-container">
         <div class="header">
             <div class="connection-status" id="connectionStatus"></div>
-            <h1>MiiMatch</h1>
+            <h1>MiingeApp</h1>
         </div>
         
         <div class="card-container" id="cardContainer">
@@ -370,8 +370,7 @@
         
         function connectWebSocket() {
             const hostname = window.location.hostname;
-            const port = '7000';
-            const wsUrl = `ws://${hostname}:${port}`;
+             const wsUrl = `wss://${hostname}`; 
             
             try {
                 ws = new WebSocket(wsUrl);
