@@ -524,12 +524,16 @@
             showSwipeFeedback('nope');
         }
         
-        function swipeRight() {
-            if (isAnimating) return;
-            animateCard('right');
-            sendCommand('spawn_cube');
-            showSwipeFeedback('like');
-        }
+function swipeRight() {
+    if (isAnimating) return;
+    animateCard('right');
+    
+    // Get the current profile name
+    const profileName = miiProfiles[currentCardIndex].name;
+    sendCommand('spawn_cube:' + profileName);
+    
+    showSwipeFeedback('like');
+}
         
         function animateCard(direction) {
             isAnimating = true;
