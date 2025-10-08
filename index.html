@@ -13,35 +13,48 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
+            padding: 20px;
         }
         
         .app-container {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
             width: 390px;
             height: 750px;
             position: relative;
             overflow: hidden;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         
         .header {
-            background: #000;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
             padding: 60px 20px 20px 20px;
-            text-align: center;
-            color: white;
+            text-align: left;
             position: relative;
         }
         
         .header h1 {
-            font-size: 24px;
+            font-size: 32px;
             font-weight: 700;
-            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+        
+        .header p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
         }
         
         .connection-status {
@@ -52,10 +65,12 @@
             height: 8px;
             border-radius: 50%;
             background: #ef4444;
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
         }
         
         .connection-status.connected {
-            background: #22c55e;
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
         }
         
         .card-container {
@@ -69,16 +84,27 @@
         
         .mii-card {
             width: 100%;
-            height: 450px;
+            height: 480px;
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
             cursor: grab;
             transition: transform 0.3s ease;
-            border: 1px solid #f0f0f0;
             display: flex;
             flex-direction: column;
             position: relative;
+            overflow: hidden;
+        }
+        
+        .mii-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+            z-index: 0;
         }
         
         .mii-card:active {
@@ -86,50 +112,51 @@
         }
         
         .mii-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 60px;
-            background: #f8f8f8;
-            margin: 40px auto 24px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 40px auto 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 64px;
-            border: 1px solid #e5e5e5;
+            font-size: 48px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+            position: relative;
+            z-index: 1;
         }
         
         .mii-info {
             text-align: center;
-            padding: 0 24px;
+            padding: 0 28px;
             flex: 1;
             display: flex;
             flex-direction: column;
+            position: relative;
+            z-index: 1;
         }
         
         .mii-name {
-            font-size: 24px;
-            font-weight: 600;
-            color: #111;
-            margin-bottom: 4px;
+            font-size: 26px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 2px;
             letter-spacing: -0.5px;
         }
         
         .mii-age {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 24px;
-            font-weight: 400;
+            font-size: 15px;
+            color: #999;
+            margin-bottom: 20px;
+            font-weight: 500;
         }
         
         .mii-bio {
-            font-size: 15px;
-            color: #333;
-            line-height: 1.4;
-            margin-bottom: 24px;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            text-align: left;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: center;
         }
         
         .mii-interests {
@@ -137,17 +164,16 @@
             flex-wrap: wrap;
             gap: 8px;
             justify-content: center;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
         
         .interest-tag {
-            background: #f5f5f5;
-            color: #666;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 13px;
-            font-weight: 500;
-            border: 1px solid #e5e5e5;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            color: #667eea;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
         }
         
         .swipe-actions {
@@ -159,27 +185,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 80px;
-            background: #fff;
-            border-top: 1px solid #f0f0f0;
+            gap: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
         }
         
         .swipe-button {
-            width: 56px;
-            height: 56px;
-            border-radius: 28px;
-            border: 2px solid #e5e5e5;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: none;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            background: #fff;
+            font-size: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
         }
         
         .swipe-button:hover {
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
         
         .swipe-button:active {
@@ -187,23 +213,21 @@
         }
         
         .reject-btn {
-            border-color: #ef4444;
-            color: #ef4444;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: #fff;
         }
         
         .reject-btn:hover {
-            background: #ef4444;
-            color: #fff;
+            box-shadow: 0 6px 24px rgba(255, 107, 107, 0.4);
         }
         
         .like-btn {
-            border-color: #22c55e;
-            color: #22c55e;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
         }
         
         .like-btn:hover {
-            background: #22c55e;
-            color: #fff;
+            box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
         }
         
         .swipe-feedback {
@@ -212,21 +236,23 @@
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
             font-size: 32px;
-            font-weight: 700;
-            padding: 16px 32px;
-            border-radius: 12px;
+            font-weight: 800;
+            padding: 20px 40px;
+            border-radius: 16px;
             color: #fff;
             pointer-events: none;
             transition: all 0.3s ease;
-            letter-spacing: -0.5px;
+            letter-spacing: 1px;
         }
         
         .swipe-feedback.nope {
-            background: #ef4444;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            box-shadow: 0 8px 32px rgba(255, 107, 107, 0.4);
         }
         
         .swipe-feedback.like {
-            background: #22c55e;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
         }
         
         .swipe-feedback.show {
@@ -245,34 +271,36 @@
         
         .no-more-cards {
             text-align: center;
-            padding: 60px 24px;
+            padding: 80px 32px;
             color: #666;
         }
         
         .no-more-cards h2 {
-            font-size: 20px;
-            margin-bottom: 8px;
-            color: #111;
-            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+            font-weight: 700;
         }
         
         .no-more-cards p {
             font-size: 15px;
-            color: #666;
-            line-height: 1.4;
+            color: #999;
+            line-height: 1.5;
         }
         
         .debug-info {
             position: fixed;
             top: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
             color: #fff;
-            padding: 6px 10px;
-            border-radius: 6px;
+            padding: 8px 12px;
+            border-radius: 8px;
             font-size: 11px;
-            font-family: monospace;
+            font-family: 'SF Mono', 'Consolas', monospace;
             z-index: 1000;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -280,7 +308,8 @@
     <div class="app-container">
         <div class="header">
             <div class="connection-status" id="connectionStatus"></div>
-            <h1>MiingeApp</h1>
+            <h1>Held.<br>Instantaneously</h1>
+            <p>This is where your swipes end up.</p>
         </div>
         
         <div class="card-container" id="cardContainer">
@@ -300,7 +329,7 @@
     </div>
     
     <div class="debug-info" id="debugInfo">
-        Disconnected
+        disconnected
     </div>
 
     <script>
@@ -370,36 +399,36 @@
         
         function connectWebSocket() {
             const hostname = window.location.hostname;
-             const wsUrl = `wss://${hostname}`; 
+            const wsUrl = `wss://${hostname}`; 
             
             try {
                 ws = new WebSocket(wsUrl);
                 
-                updateDebugInfo('Connecting...');
+                updateDebugInfo('connecting');
                 
                 ws.onopen = function() {
                     isConnected = true;
                     updateConnectionStatus(true);
-                    updateDebugInfo('Connected');
+                    updateDebugInfo('connected');
                 };
                 
                 ws.onmessage = function(event) {
-                    updateDebugInfo(`${event.data}`);
+                    // Silently receive messages
                 };
                 
                 ws.onclose = function() {
                     isConnected = false;
                     updateConnectionStatus(false);
-                    updateDebugInfo('Disconnected');
+                    updateDebugInfo('disconnected');
                     setTimeout(connectWebSocket, 3000);
                 };
                 
                 ws.onerror = function() {
-                    updateDebugInfo('Error');
+                    updateDebugInfo('error');
                 };
                 
             } catch (error) {
-                updateDebugInfo(`Failed`);
+                updateDebugInfo('failed');
                 setTimeout(connectWebSocket, 3000);
             }
         }
@@ -417,7 +446,6 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
                 const message = 'web:' + command;
                 ws.send(message);
-                updateDebugInfo(`Sent: ${command}`);
             }
         }
         
@@ -446,7 +474,7 @@
                 container.innerHTML = `
                     <div class="no-more-cards">
                         <h2>No more profiles</h2>
-                        <p>You've seen everyone. Check back later for new matches!</p>
+                        <p>Check back later for new matches</p>
                     </div>
                 `;
                 return;
@@ -517,27 +545,25 @@
             }, 1000);
         }
         
-function swipeLeft() {
-    if (isAnimating) return;
-    animateCard('left');
-    
-    // Get the current profile name
-    const profileName = miiProfiles[currentCardIndex].name;
-    sendCommand('reject_cube:' + profileName);
-    
-    showSwipeFeedback('nope');
-}
+        function swipeLeft() {
+            if (isAnimating) return;
+            animateCard('left');
+            
+            const profileName = miiProfiles[currentCardIndex].name;
+            sendCommand('reject_cube:' + profileName);
+            
+            showSwipeFeedback('nope');
+        }
         
-function swipeRight() {
-    if (isAnimating) return;
-    animateCard('right');
-    
-    // Get the current profile name
-    const profileName = miiProfiles[currentCardIndex].name;
-    sendCommand('spawn_cube:' + profileName);
-    
-    showSwipeFeedback('like');
-}
+        function swipeRight() {
+            if (isAnimating) return;
+            animateCard('right');
+            
+            const profileName = miiProfiles[currentCardIndex].name;
+            sendCommand('spawn_cube:' + profileName);
+            
+            showSwipeFeedback('like');
+        }
         
         function animateCard(direction) {
             isAnimating = true;
