@@ -5,6 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MiingeApp</title>
     <style>
+        .chat-tabs {
+            display: flex;
+            overflow-x: auto;
+            padding: 12px 20px;
+            gap: 8px;
+            border-bottom: 1px solid #e5e5e5;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .chat-tabs::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .chat-tabs::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 2px;
+        }
+        
+        .chat-tab {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            white-space: nowrap;
+        }
+        
+        .chat-tab:hover {
+            background: #e0e0e0;
+        }
+        
+        .chat-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -333,6 +373,32 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        
+        .chat-tabs {
+            display: flex;
+            overflow-x: auto;
+            padding: 12px 20px;
+            gap: 8px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .chat-tab {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .chat-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
         }
         
         .chat-tabs {
@@ -715,6 +781,15 @@
             if (isAnimating) return;
             
             const profileName = miiProfiles[currentCardIndex].name;
+            const profile = miiProfiles[currentCardIndex];
+            
+            // Add to matches
+            matches.push({
+                name: profileName,
+                emoji: profile.emoji,
+                age: profile.age
+            });
+            
             currentMatchName = profileName;
             
             animateCard('right');
@@ -723,7 +798,7 @@
             
             // Show message modal after a brief delay
             setTimeout(() => {
-                showMessageModal(profileName);
+                showMessageModal();
             }, 1200);
         }
         
@@ -742,14 +817,56 @@
             }, 400);
         }
         
-        function showMessageModal(name) {
+        function showMessageModal() {
             const modal = document.getElementById('messageModal');
-            const matchName = document.getElementById('matchName');
             const messageInput = document.getElementById('messageInput');
             
-            matchName.textContent = name;
             messageInput.value = '';
+            renderChatTabs();
+            updateSendButton();
             modal.classList.add('show');
+        }
+        
+        function renderChatTabs() {
+            const tabsContainer = document.getElementById('chatTabs');
+            tabsContainer.innerHTML = '';
+            
+            matches.forEach((match, index) => {
+                const tab = document.createElement('button');
+                tab.className = 'chat-tab';
+                tab.textContent = `${match.emoji} ${match.name}`;
+                
+                if (match.name === currentMatchName) {
+                    tab.classList.add('active');
+                }
+                
+                tab.onclick = () => selectMatch(match.name);
+                tabsContainer.appendChild(tab);
+            });
+        }
+        
+        function selectMatch(name) {
+            currentMatchName = name;
+            renderChatTabs();
+            updateSendButton();
+            
+            const messageInput = document.getElementById('messageInput');
+            messageInput.value = '';
+        }
+        
+        function updateSendButton() {
+            const sendBtn = document.getElementById('sendBtn');
+            const limitInfo = document.getElementById('messageLimitInfo');
+            
+            if (messagedMatches.has(currentMatchName)) {
+                sendBtn.disabled = true;
+                limitInfo.textContent = `Already sent message to ${currentMatchName}`;
+                limitInfo.style.color = '#ff6b6b';
+            } else {
+                sendBtn.disabled = false;
+                limitInfo.textContent = '1 message per match';
+                limitInfo.style.color = '#999';
+            }
         }
         
         function closeMessageModal() {
@@ -761,16 +878,22 @@
             const messageInput = document.getElementById('messageInput');
             const message = messageInput.value.trim();
             
-            if (!message) return;
+            if (!message || messagedMatches.has(currentMatchName)) return;
             
             // Send message via WebSocket
             sendCommand(`send_message:${currentMatchName}:${message}`);
             
-            // Close modal
-            closeMessageModal();
+            // Mark as messaged
+            messagedMatches.add(currentMatchName);
             
-            // Optional: Show confirmation
+            // Update UI
+            messageInput.value = '';
+            updateSendButton();
+            
+            // Show confirmation
             updateDebugInfo(`sent to ${currentMatchName}`);
+            
+            // Optional: Don't close modal so they can switch to other matches
         }
         
         // Allow Enter to send (Shift+Enter for new line)
