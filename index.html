@@ -289,19 +289,17 @@
             line-height: 1.5;
         }
         
-        /* Message Modal */
         .message-modal {
             position: absolute;
             bottom: -100%;
             left: 0;
             right: 0;
-            height: 300px;
+            height: 400px;
             background: #fff;
             border-radius: 24px 24px 0 0;
             box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
             transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 200;
-            padding: 20px;
             display: flex;
             flex-direction: column;
         }
@@ -311,10 +309,10 @@
         }
         
         .message-header {
+            padding: 20px 20px 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
         }
         
         .message-header h3 {
@@ -337,11 +335,44 @@
             justify-content: center;
         }
         
+        .chat-tabs {
+            display: flex;
+            overflow-x: auto;
+            padding: 12px 20px;
+            gap: 8px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .chat-tab {
+            flex-shrink: 0;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .chat-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        
         .message-input-container {
             flex: 1;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+        }
+        
+        .message-limit-info {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
         }
         
         .message-input {
@@ -429,17 +460,23 @@
         <!-- Message Modal -->
         <div class="message-modal" id="messageModal">
             <div class="message-header">
-                <h3>Message <span id="matchName"></span></h3>
+                <h3>Messages</h3>
                 <button class="close-btn" onclick="closeMessageModal()">×</button>
             </div>
+            <div class="chat-tabs" id="chatTabs">
+                <!-- Tabs will be generated here -->
+            </div>
             <div class="message-input-container">
+                <div class="message-limit-info" id="messageLimitInfo">
+                    1 message per match
+                </div>
                 <textarea 
                     class="message-input" 
                     id="messageInput" 
                     placeholder="Say something nice..."
                     maxlength="200"
                 ></textarea>
-                <button class="send-btn" onclick="sendMessage()">Send to Purgatory</button>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send to Purgatory</button>
             </div>
         </div>
     </div>
@@ -454,6 +491,8 @@
         let currentCardIndex = 0;
         let isAnimating = false;
         let currentMatchName = '';
+        let matches = []; // Store all matches
+        let messagedMatches = new Set(); // Track who's been messaged
         
         const miiProfiles = [
             {
