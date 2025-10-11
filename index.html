@@ -289,6 +289,104 @@
             line-height: 1.5;
         }
         
+        /* Message Modal */
+        .message-modal {
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            height: 300px;
+            background: #fff;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 200;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message-modal.show {
+            bottom: 0;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .message-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .message-input-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .message-input {
+            flex: 1;
+            border: 2px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .message-input:focus {
+            border-color: #667eea;
+        }
+        
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .send-btn:active {
+            transform: translateY(0);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
         .debug-info {
             position: fixed;
             top: 20px;
@@ -327,6 +425,23 @@
         </div>
         
         <div class="swipe-feedback" id="swipeFeedback"></div>
+        
+        <!-- Message Modal -->
+        <div class="message-modal" id="messageModal">
+            <div class="message-header">
+                <h3>Message <span id="matchName"></span></h3>
+                <button class="close-btn" onclick="closeMessageModal()">×</button>
+            </div>
+            <div class="message-input-container">
+                <textarea 
+                    class="message-input" 
+                    id="messageInput" 
+                    placeholder="Say something nice..."
+                    maxlength="200"
+                ></textarea>
+                <button class="send-btn" onclick="sendMessage()">Send to Purgatory</button>
+            </div>
+        </div>
     </div>
     
     <div class="debug-info" id="debugInfo">
@@ -338,6 +453,7 @@
         let isConnected = false;
         let currentCardIndex = 0;
         let isAnimating = false;
+        let currentMatchName = '';
         
         const miiProfiles = [
             {
@@ -558,12 +674,18 @@
         
         function swipeRight() {
             if (isAnimating) return;
-            animateCard('right');
             
             const profileName = miiProfiles[currentCardIndex].name;
-            sendCommand('spawn_cube:' + profileName);
+            currentMatchName = profileName;
             
+            animateCard('right');
+            sendCommand('spawn_cube:' + profileName);
             showSwipeFeedback('like');
+            
+            // Show message modal after a brief delay
+            setTimeout(() => {
+                showMessageModal(profileName);
+            }, 1200);
         }
         
         function animateCard(direction) {
@@ -580,6 +702,48 @@
                 isAnimating = false;
             }, 400);
         }
+        
+        function showMessageModal(name) {
+            const modal = document.getElementById('messageModal');
+            const matchName = document.getElementById('matchName');
+            const messageInput = document.getElementById('messageInput');
+            
+            matchName.textContent = name;
+            messageInput.value = '';
+            modal.classList.add('show');
+        }
+        
+        function closeMessageModal() {
+            const modal = document.getElementById('messageModal');
+            modal.classList.remove('show');
+        }
+        
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // Send message via WebSocket
+            sendCommand(`send_message:${currentMatchName}:${message}`);
+            
+            // Close modal
+            closeMessageModal();
+            
+            // Optional: Show confirmation
+            updateDebugInfo(`sent to ${currentMatchName}`);
+        }
+        
+        // Allow Enter to send (Shift+Enter for new line)
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('messageInput');
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        });
         
         function init() {
             connectWebSocket();
