@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MiingeApp - Hinge Style</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -12,28 +12,47 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        html {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: pan-y;
         }
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #000;
             min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0;
             margin: 0;
+            overflow: hidden;
+            position: fixed;
+            touch-action: none;
         }
         
         .app-container {
             background: #fff;
-            width: 390px;
-            height: 844px;
+            width: 100vw;
+            max-width: 390px;
+            height: 100vh;
+            max-height: 844px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
+            touch-action: pan-y;
         }
         
         /* Header - Hinge Style */
@@ -47,19 +66,19 @@
         }
         
         .header-content {
-            padding: 16px 20px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .app-title {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.5px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -67,8 +86,8 @@
         }
         
         .connection-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #ff4757;
             box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
@@ -96,15 +115,15 @@
             background: #fff;
             color: #000;
             border: 2px solid #000;
-            padding: 10px 20px;
-            font-size: 14px;
+            padding: 8px 16px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
-            border-radius: 25px;
+            border-radius: 20px;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         
         .chat-toggle-btn:hover {
@@ -140,6 +159,8 @@
             display: flex;
             flex-direction: column;
             background: #fafafa;
+            overflow: hidden;
+            min-height: 0;
         }
         
         .card-area {
@@ -149,22 +170,27 @@
             align-items: center;
             justify-content: center;
             background: #fafafa;
-            padding: 16px;
+            padding: 20px;
+            overflow: hidden;
+            min-height: 0;
         }
         
         .profile-card {
-            width: 100%;
-            height: 100%;
+            width: 85%;
+            max-width: 320px;
+            height: 85%;
+            max-height: 520px;
             background: #fff;
-            border-radius: 20px;
+            border-radius: 16px;
             cursor: grab;
             transition: transform 0.3s ease;
             display: flex;
             flex-direction: column;
             padding: 0;
             position: relative;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            touch-action: pan-y;
         }
         
         .profile-card:active {
@@ -183,86 +209,96 @@
         
         .card-photo-section {
             width: 100%;
-            height: 55%;
+            height: 45%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
         
         .card-photo-section::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%);
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.2) 100%);
         }
         
         .profile-avatar {
-            width: 120px;
-            height: 120px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(20px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 64px;
-            border: 4px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            font-size: 42px;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
             position: relative;
             z-index: 1;
         }
         
         .card-info-section {
             flex: 1;
-            padding: 24px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            overflow-y: auto;
+            gap: 12px;
+            overflow: hidden;
+            min-height: 0;
         }
         
         .profile-name-age {
             display: flex;
             align-items: baseline;
-            gap: 8px;
+            gap: 6px;
+            flex-shrink: 0;
         }
         
         .profile-name {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: 700;
             color: #000;
             letter-spacing: -0.5px;
         }
         
         .profile-age {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 400;
             color: #666;
         }
         
         .profile-bio {
-            font-size: 16px;
+            font-size: 13px;
             color: #333;
-            line-height: 1.6;
+            line-height: 1.5;
             font-weight: 400;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            line-clamp: 4;
+            -webkit-box-orient: vertical;
         }
         
         .profile-interests {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
+            flex-shrink: 0;
         }
         
         .interest-tag {
             background: #f0f0f0;
             color: #000;
             border: 1px solid #e0e0e0;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
             font-weight: 600;
             transition: all 0.2s;
         }
@@ -273,30 +309,31 @@
         
         .swipe-actions {
             position: relative;
-            height: 100px;
+            height: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 24px;
+            gap: 20px;
             background: #fff;
             border-top: 1px solid #f0f0f0;
             padding: 0 20px;
         }
         
         .swipe-button {
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
             border: none;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            font-size: 28px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
             background: white;
             border-radius: 50%;
             position: relative;
+            touch-action: manipulation;
         }
         
         .swipe-button::before {
@@ -315,7 +352,7 @@
         }
         
         .swipe-button:hover {
-            transform: scale(1.15);
+            transform: scale(1.1);
         }
         
         .swipe-button:hover::before {
@@ -337,21 +374,21 @@
         
         .no-more-cards {
             text-align: center;
-            padding: 60px 40px;
+            padding: 40px 30px;
         }
         
         .no-more-cards h2 {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 700;
             color: #000;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             letter-spacing: -0.5px;
         }
         
         .no-more-cards p {
-            font-size: 16px;
+            font-size: 14px;
             color: #666;
-            line-height: 1.6;
+            line-height: 1.5;
         }
         
         /* Chat Panel - Hinge Style */
@@ -379,7 +416,7 @@
         .chat-panel-header {
             background: #fff;
             color: #000;
-            padding: 20px 20px 16px;
+            padding: 16px 16px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -390,17 +427,17 @@
         .chat-panel-header::before {
             content: '';
             position: absolute;
-            top: 8px;
+            top: 6px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
+            width: 36px;
             height: 4px;
             background: #e0e0e0;
             border-radius: 2px;
         }
         
         .chat-panel-title {
-            font-size: 28px;
+            font-size: 20px;
             font-weight: 800;
             letter-spacing: -0.5px;
             background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
@@ -413,9 +450,9 @@
             background: #f0f0f0;
             color: #000;
             border: none;
-            width: 40px;
-            height: 40px;
-            font-size: 24px;
+            width: 32px;
+            height: 32px;
+            font-size: 20px;
             cursor: pointer;
             border-radius: 50%;
             display: flex;
@@ -439,8 +476,8 @@
             overflow-x: auto;
             background: #fff;
             border-bottom: 1px solid #f0f0f0;
-            padding: 12px 20px;
-            gap: 12px;
+            padding: 8px 16px;
+            gap: 8px;
             scrollbar-width: none;
         }
         
@@ -450,15 +487,15 @@
         
         .match-tab {
             flex-shrink: 0;
-            padding: 12px 20px;
+            padding: 8px 14px;
             background: #f8f8f8;
             border: none;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
-            border-radius: 25px;
+            border-radius: 20px;
             color: #666;
         }
         
@@ -473,53 +510,55 @@
         
         .chat-messages {
             flex: 1;
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
+            overflow-x: hidden;
             background: #fafafa;
-            min-height: 150px;
-            max-height: 200px;
+            min-height: 120px;
+            max-height: 160px;
+            -webkit-overflow-scrolling: touch;
         }
         
         .empty-chat {
             text-align: center;
             color: #999;
-            padding: 60px 40px;
+            padding: 30px 20px;
         }
         
         .empty-chat p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 6px;
         }
         
         .empty-chat p:first-child {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 600;
             color: #666;
         }
         
         .chat-input-area {
-            padding: 16px 20px 24px;
+            padding: 12px 16px 16px;
             background: #fff;
             border-top: 1px solid #f0f0f0;
         }
         
         .chat-input-wrapper {
             display: flex;
-            gap: 12px;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 6px;
         }
         
         .chat-input {
             flex: 1;
-            padding: 14px 16px;
+            padding: 10px 14px;
             border: 2px solid #e0e0e0;
             font-family: 'Inter', sans-serif;
-            font-size: 15px;
+            font-size: 13px;
             background: #fafafa;
             resize: none;
-            height: 52px;
-            border-radius: 26px;
+            height: 42px;
+            border-radius: 21px;
             transition: all 0.2s;
             outline: none;
         }
@@ -533,19 +572,19 @@
             background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
             color: #fff;
             border: none;
-            padding: 14px 28px;
-            font-size: 15px;
+            padding: 10px 20px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
-            border-radius: 26px;
-            box-shadow: 0 4px 16px rgba(255, 107, 157, 0.3);
+            border-radius: 21px;
+            box-shadow: 0 2px 12px rgba(255, 107, 157, 0.3);
         }
         
         .send-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 107, 157, 0.4);
         }
         
         .send-btn:active:not(:disabled) {
@@ -560,7 +599,7 @@
         }
         
         .message-limit {
-            font-size: 13px;
+            font-size: 11px;
             color: #999;
             text-align: center;
             font-weight: 500;
@@ -572,16 +611,16 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0);
-            font-size: 72px;
+            font-size: 48px;
             font-weight: 800;
-            padding: 40px 60px;
+            padding: 24px 40px;
             border: none;
             background: rgba(255, 255, 255, 0.98);
             z-index: 1000;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            letter-spacing: -2px;
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+            letter-spacing: -1px;
         }
         
         .swipe-feedback.show {
@@ -600,13 +639,13 @@
         
         .debug-info {
             position: absolute;
-            bottom: 12px;
-            left: 12px;
-            font-size: 11px;
+            bottom: 8px;
+            left: 8px;
+            font-size: 9px;
             color: #999;
             background: rgba(255, 255, 255, 0.95);
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 4px 8px;
+            border-radius: 12px;
             z-index: 5;
             border: 1px solid #f0f0f0;
             font-weight: 500;
@@ -721,7 +760,7 @@
         ];
         
         function connectWebSocket() {
-            const wsUrl = 'ws://localhost:8080';
+            const wsUrl = 'wss://miingeapp.onrender.com';
             updateDebugInfo('Connecting...');
             
             try {
