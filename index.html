@@ -661,6 +661,29 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #ccc;
         }
+        
+        /* Toast notification animations */
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -735,6 +758,7 @@
         let matches = [];
         let currentMatchName = null;
         let messagedMatches = new Set();
+        let matchConversations = {}; // Store conversations per match: { miiName: [{from: 'user'|'match', text: '...'}] }
         
         const profiles = [
             { name: 'Crab', age: '2', emoji: '🦀', bio: 'I walk sideways and I\'m not sorry about it. Will pinch you on the first date (romantically). Living my best crustacean life.', interests: ['🏖️ Beaches', '🪨 Hiding', '🌊 Scuttling'] },
@@ -767,6 +791,16 @@
                 ws.onmessage = (event) => {
                     console.log('Message from server:', event.data);
                     updateDebugInfo('Msg: ' + event.data.substring(0, 20));
+                    
+                    // Handle incoming messages from matched Miis
+                    if (event.data.startsWith('match_reply:')) {
+                        const parts = event.data.split(':');
+                        if (parts.length >= 3) {
+                            const miiName = parts[1];
+                            const message = parts.slice(2).join(':'); // Rejoin in case message has colons
+                            handleMatchReply(miiName, message);
+                        }
+                    }
                 };
                 
                 ws.onerror = (error) => {
@@ -1043,14 +1077,58 @@
                 return;
             }
             
-            messagesContainer.innerHTML = `
-                <div class="empty-chat">
-                    <p>You matched with ${currentMatchName}!</p>
-                    <p>Start the conversation with a message below</p>
-                </div>
-            `;
+            // Remove notification dot when viewing this match's messages
+            const tabs = document.querySelectorAll('.match-tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.includes(currentMatchName)) {
+                    const dot = tab.querySelector('.notification-dot');
+                    if (dot) dot.remove();
+                }
+            });
+            
+            // Get conversation history for current match
+            const conversation = matchConversations[currentMatchName] || [];
+            
+            if (conversation.length === 0) {
+                messagesContainer.innerHTML = `
+                    <div class="empty-chat">
+                        <p>You matched with ${currentMatchName}!</p>
+                        <p>Start the conversation with a message below</p>
+                    </div>
+                `;
+            } else {
+                // Display conversation
+                messagesContainer.innerHTML = conversation.map(msg => {
+                    if (msg.from === 'user') {
+                        return `
+                            <div style="margin-bottom: 12px; text-align: right;">
+                                <div style="display: inline-block; background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; padding: 10px 14px; border-radius: 16px 16px 4px 16px; max-width: 70%; font-size: 13px; line-height: 1.4;">
+                                    ${escapeHtml(msg.text)}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div style="margin-bottom: 12px; text-align: left;">
+                                <div style="display: inline-block; background: #f0f0f0; color: #333; padding: 10px 14px; border-radius: 16px 16px 16px 4px; max-width: 70%; font-size: 13px; line-height: 1.4;">
+                                    ${escapeHtml(msg.text)}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+                
+                // Scroll to bottom
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
             
             updateSendButton();
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         function updateSendButton() {
@@ -1081,6 +1159,16 @@
             // Send message via WebSocket
             sendCommand(`send_message:${currentMatchName}:${message}`);
             
+            // Store sent message in conversation
+            if (!matchConversations[currentMatchName]) {
+                matchConversations[currentMatchName] = [];
+            }
+            matchConversations[currentMatchName].push({
+                from: 'user',
+                text: message,
+                timestamp: Date.now()
+            });
+            
             // Mark as messaged
             messagedMatches.add(currentMatchName);
             
@@ -1091,14 +1179,80 @@
             // Show confirmation
             updateDebugInfo(`Sent to ${currentMatchName}`);
             
-            // Show feedback in chat
-            const messagesContainer = document.getElementById('chatMessages');
-            messagesContainer.innerHTML = `
-                <div class="empty-chat">
-                    <p style="color: #ff6b9d;">✓ Message sent to ${currentMatchName}!</p>
-                    <p>You can switch to other matches to send more messages</p>
-                </div>
+            // Update chat display
+            updateChatMessages();
+        }
+        
+        function handleMatchReply(miiName, message) {
+            console.log(`Received reply from ${miiName}: ${message}`);
+            
+            // Store received message in conversation
+            if (!matchConversations[miiName]) {
+                matchConversations[miiName] = [];
+            }
+            matchConversations[miiName].push({
+                from: 'match',
+                text: message,
+                timestamp: Date.now()
+            });
+            
+            // Show notification badge if chat is closed or different match is selected
+            const panel = document.getElementById('chatPanel');
+            if (!panel.classList.contains('open') || currentMatchName !== miiName) {
+                updateChatToggleButton();
+                showNotificationBadge(miiName);
+            }
+            
+            // If viewing this match's chat, update the display
+            if (currentMatchName === miiName && panel.classList.contains('open')) {
+                updateChatMessages();
+            }
+            
+            // Show a quick toast notification
+            showToastNotification(`💬 ${miiName} replied!`);
+        }
+        
+        function showNotificationBadge(miiName) {
+            // Add a visual indicator on the match's tab
+            const tabs = document.querySelectorAll('.match-tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.includes(miiName) && !tab.classList.contains('active')) {
+                    tab.style.position = 'relative';
+                    if (!tab.querySelector('.notification-dot')) {
+                        const dot = document.createElement('span');
+                        dot.className = 'notification-dot';
+                        dot.style.cssText = 'position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #ff6b9d; border-radius: 50%; border: 2px solid white;';
+                        tab.appendChild(dot);
+                    }
+                }
+            });
+        }
+        
+        function showToastNotification(message) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+                position: fixed;
+                top: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 24px;
+                font-size: 14px;
+                font-weight: 600;
+                z-index: 1001;
+                box-shadow: 0 4px 20px rgba(255, 107, 157, 0.4);
+                animation: slideDown 0.3s ease;
             `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideUp 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
         
         // Allow Enter to send (Shift+Enter for new line)
