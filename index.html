@@ -19,7 +19,6 @@
         
         html {
             overflow: hidden;
-            position: fixed;
             width: 100%;
             height: 100%;
             touch-action: pan-y;
@@ -28,8 +27,8 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: #000;
-            min-height: 100vh;
-            height: 100vh;
+            min-height: 100dvh;
+            height: 100dvh;
             width: 100vw;
             display: flex;
             align-items: center;
@@ -37,16 +36,14 @@
             padding: 0;
             margin: 0;
             overflow: hidden;
-            position: fixed;
             touch-action: none;
         }
         
         .app-container {
             background: #fff;
             width: 100vw;
-            max-width: 390px;
-            height: 100vh;
-            max-height: 844px;
+            max-width: 430px;
+            height: 100dvh;
             position: relative;
             overflow: hidden;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -66,14 +63,14 @@
         }
         
         .header-content {
-            padding: 12px 16px;
+            padding: clamp(10px, 3vh, 16px) 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .app-title {
-            font-size: 22px;
+            font-size: clamp(18px, 5vw, 22px);
             font-weight: 800;
             letter-spacing: -0.5px;
             display: flex;
@@ -115,8 +112,8 @@
             background: #fff;
             color: #000;
             border: 2px solid #000;
-            padding: 8px 16px;
-            font-size: 13px;
+            padding: clamp(6px, 2vh, 10px) clamp(12px, 4vw, 16px);
+            font-size: clamp(11px, 3vw, 13px);
             font-weight: 700;
             cursor: pointer;
             border-radius: 20px;
@@ -170,16 +167,15 @@
             align-items: center;
             justify-content: center;
             background: #fafafa;
-            padding: 20px;
+            padding: clamp(12px, 3vh, 20px);
             overflow: hidden;
             min-height: 0;
         }
         
         .profile-card {
-            width: 85%;
-            max-width: 320px;
-            height: 85%;
-            max-height: 520px;
+            width: 88%;
+            max-width: 340px;
+            height: 90%;
             background: #fff;
             border-radius: 16px;
             cursor: grab;
@@ -227,15 +223,15 @@
         }
         
         .profile-avatar {
-            width: 70px;
-            height: 70px;
+            width: clamp(60px, 12vw, 70px);
+            height: clamp(60px, 12vw, 70px);
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(20px);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 42px;
+            font-size: clamp(36px, 8vw, 42px);
             border: 3px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
             position: relative;
@@ -244,11 +240,12 @@
         
         .card-info-section {
             flex: 1;
-            padding: 20px;
+            padding: clamp(14px, 3vh, 20px);
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            overflow: hidden;
+            gap: clamp(8px, 2vh, 12px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             min-height: 0;
         }
         
@@ -260,29 +257,23 @@
         }
         
         .profile-name {
-            font-size: 24px;
+            font-size: clamp(20px, 5vw, 24px);
             font-weight: 700;
             color: #000;
             letter-spacing: -0.5px;
         }
         
         .profile-age {
-            font-size: 20px;
+            font-size: clamp(18px, 4.5vw, 20px);
             font-weight: 400;
             color: #666;
         }
         
         .profile-bio {
-            font-size: 13px;
+            font-size: clamp(12px, 3vw, 13px);
             color: #333;
             line-height: 1.5;
             font-weight: 400;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            line-clamp: 4;
-            -webkit-box-orient: vertical;
         }
         
         .profile-interests {
@@ -296,9 +287,9 @@
             background: #f0f0f0;
             color: #000;
             border: 1px solid #e0e0e0;
-            padding: 6px 12px;
+            padding: clamp(5px, 1.5vh, 6px) clamp(10px, 3vw, 12px);
             border-radius: 16px;
-            font-size: 12px;
+            font-size: clamp(11px, 2.5vw, 12px);
             font-weight: 600;
             transition: all 0.2s;
         }
@@ -309,26 +300,27 @@
         
         .swipe-actions {
             position: relative;
-            height: 80px;
+            height: clamp(70px, 12vh, 90px);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px;
+            gap: clamp(16px, 5vw, 20px);
             background: #fff;
             border-top: 1px solid #f0f0f0;
             padding: 0 20px;
+            flex-shrink: 0;
         }
         
         .swipe-button {
-            width: 56px;
-            height: 56px;
+            width: clamp(50px, 12vw, 56px);
+            height: clamp(50px, 12vw, 56px);
             border: none;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
+            font-size: clamp(24px, 6vw, 28px);
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
             background: white;
             border-radius: 50%;
@@ -803,8 +795,10 @@
         
         function sendCommand(command) {
             if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(command);
-                console.log('Sent:', command);
+                // Add 'web:' prefix to match Unity's expected format
+                const message = 'web:' + command;
+                ws.send(message);
+                console.log('Sent:', message);
             } else {
                 console.log('WebSocket not connected');
                 updateDebugInfo('Not connected!');
