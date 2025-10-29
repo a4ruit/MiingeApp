@@ -787,6 +787,33 @@
                 opacity: 0;
             }
         }
+
+        @keyframes bounceIn {
+    0% {
+        transform: translateX(-50%) scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(-50%) scale(1.1);
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+        }
+
+        #breadcrumbBtn {
+            transition: transform 0.2s ease;
+        }
+
+        #breadcrumbBtn:hover {
+            transform: translateX(-50%) scale(1.05) !important;
+            box-shadow: 0 6px 24px rgba(244, 164, 96, 0.6);
+        }
+
+        #breadcrumbBtn:active {
+            transform: translateX(-50%) scale(0.95) !important;
+        }
     </style>
 </head>
 <body>
@@ -1278,6 +1305,14 @@ function sendMessage() {
     updateDebugInfo(`Sent to ${currentMatchName}`);
     updateChatMessages();
     
+    // SPECIAL: Check if user messaged Houseplant - unlock breadcrumb feature
+    if (currentMatchName === 'Houseplant') {
+        console.log('🍞 User messaged Houseplant! Unlocking breadcrumb feature...');
+        setTimeout(() => {
+            showBreadcrumbButton();
+        }, 500);
+    }
+    
     // Check if user has unlocked mass ghost feature
     if (messagedMatches.size === GHOST_THRESHOLD) {
         console.log(`🎉 User has messaged ${GHOST_THRESHOLD} matches! Unlocking ghost feature...`);
@@ -1285,6 +1320,52 @@ function sendMessage() {
             showGhostNotification();
         }, 1000);
     }
+}
+
+function showBreadcrumbButton() {
+    // Check if button already exists
+    if (document.getElementById('breadcrumbBtn')) return;
+    
+    const btn = document.createElement('button');
+    btn.id = 'breadcrumbBtn';
+    btn.innerHTML = '🍞 Send Breadcrumb';
+    btn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #f4a460 0%, #daa520 100%);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 24px;
+        z-index: 1002;
+        box-shadow: 0 4px 20px rgba(244, 164, 96, 0.5);
+        animation: bounceIn 0.5s ease;
+        font-family: 'Inter', sans-serif;
+    `;
+    
+    btn.onclick = sendBreadcrumb;
+    document.body.appendChild(btn);
+    
+    showToastNotification('🍞 Breadcrumb unlocked! Houseplant will love this!');
+}
+
+function sendBreadcrumb() {
+    console.log('🍞 Sending breadcrumb to Unity!');
+    sendCommand('spawn_breadcrumb');
+    
+    showToastNotification('🍞 Breadcrumb sent!');
+    
+    // Optional: Add animation to button
+    const btn = document.getElementById('breadcrumbBtn');
+    btn.style.transform = 'translateX(-50%) scale(0.9)';
+    setTimeout(() => {
+        btn.style.transform = 'translateX(-50%) scale(1)';
+    }, 200);
 }
 
 function handleMatchReply(miiName, message) {
