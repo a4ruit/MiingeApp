@@ -901,7 +901,7 @@ const profiles = [
     { name: 'The Void', age: '∞', emoji: '🕳️', bio: 'Endless darkness seeking same. Into staring contests (I always win). No baggage because I contain all of existence.', interests: ['👁️ Staring', '🌌 Existing', '❓ Mystery'] },
     { name: 'GABAGOOOOL', age: '32', emoji: '🥩', bio: 'OVA HEREEEE', interests: ['🍖' ] },
     { name: 'Gerald', age: '73', emoji: '🦆', bio: 'Just a duck trying to find love in this crazy pond. I have bread. You have bread? We should share bread. QUACK QUACK.', interests: ['🍞 Bread', '💦 Puddles', '🦆 Quacking'] },
-    { name: 'Microwave', age: '12', emoji: '📱', bio: 'MMMMMMMMMMMMMM. I heat things up fast. Spinning plate included. Will never judge your 3am hot pocket cravings.', interests: ['🔥 Heating', '⏰ Beeping', '🍕 Leftovers'] },
+    { name: 'Microwave', age: '12', emoji: '📱', bio: 'MMMMMMMMMMMMMM. I heat things up fast. Spinning plate included. Will never judge your 3am leftover HSP struggle meal.', interests: ['🔥 Heating', '⏰ Beeping', '🍕 Leftovers'] },
     { name: 'Existential Dread', age: '??', emoji: '😰', bio: 'Are we real? Is this app real? What if we match and it means nothing? Actually that sounds perfect. Let\'s be anxious together.', interests: ['🤔 Overthinking', '😱 Panicking', '🌙 3AM Thoughts'] },
     { name: 'Capybara CEO', age: '5', emoji: '🐹', bio: 'Chill vibes only. Built a fortune 500 by just vibing in hot springs with oranges on my head. Looking for my orange.', interests: ['🛁 Hot Springs', '🍊 Oranges', '😌 Vibing'] },
     { name: 'Sentient Cheese', age: '69', emoji: '🧀', bio: 'I\'ve been aging gracefully in a cave for years. Very mature for my age. Holey but whole. Not lactose intolerant people only.', interests: ['🍷 Wine', '🕳️ Holes', '🧂 Salt'] },
@@ -1306,7 +1306,7 @@ function sendMessage() {
     updateChatMessages();
     
     // SPECIAL breadcrumb feature
-if (currentMatchName === 'Houseplant' || currentMatchName === 'Sentient Cheese') {
+if (currentMatchName === 'Houseplant' || currentMatchName === 'Sentient Cheese' || currentMatchName === 'Gerald') {
     console.log(`🍞 User messaged ${currentMatchName}! Unlocking breadcrumb feature...`);
     setTimeout(() => {
         showBreadcrumbButton();
