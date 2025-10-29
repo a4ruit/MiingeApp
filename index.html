@@ -1305,13 +1305,13 @@ function sendMessage() {
     updateDebugInfo(`Sent to ${currentMatchName}`);
     updateChatMessages();
     
-    // SPECIAL: Check if user messaged Houseplant - unlock breadcrumb feature
-    if (currentMatchName === 'Houseplant') {
-        console.log('🍞 User messaged Houseplant! Unlocking breadcrumb feature...');
-        setTimeout(() => {
-            showBreadcrumbButton();
-        }, 500);
-    }
+    // SPECIAL breadcrumb feature
+if (currentMatchName === 'Houseplant' || currentMatchName === 'Sentient Cheese') {
+    console.log(`🍞 User messaged ${currentMatchName}! Unlocking breadcrumb feature...`);
+    setTimeout(() => {
+        showBreadcrumbButton();
+    }, 500);
+}
     
     // Check if user has unlocked mass ghost feature
     if (messagedMatches.size === GHOST_THRESHOLD) {
@@ -1351,7 +1351,7 @@ function showBreadcrumbButton() {
     btn.onclick = sendBreadcrumb;
     document.body.appendChild(btn);
     
-    showToastNotification('🍞 Breadcrumb unlocked! Houseplant will love this!');
+    showToastNotification('🍞 Breadcrumb unlocked! Your match will love this!');
 }
 
 function sendBreadcrumb() {
