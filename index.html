@@ -246,6 +246,32 @@
             -webkit-overflow-scrolling: touch;
             min-height: 0;
         }
+
+        .match-notification {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
+            animation: slideDown 0.3s ease, pulse 2s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
         
         .profile-name-age {
             display: flex;
@@ -861,12 +887,15 @@
                     SwipeMe
                     <div class="connection-dot" id="connectionDot"></div>
                 </div>
-                <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChatPanel()">
-                    💬 Chat
-                </button>
+                <div style="position: relative;">
+                    <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChatPanel()">
+                        💬 Chat
+                    </button>
+                    <div class="match-notification" id="matchNotification" style="display: none;">
+                        New match! 🎉
+                    </div>
+                </div>
             </div>
-        </div>
-        
         <div class="main-content">
             <div class="card-area" id="cardContainer"></div>
             
@@ -1155,6 +1184,12 @@ function swipeRight() {
     animateCard('right');
     sendCommand('spawn_cube:' + profileName);
     showSwipeFeedback('like');
+
+    const notification = document.getElementById('matchNotification');
+        notification.style.display = 'block';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 4000);
     
     renderMatchTabs();
     updateChatToggleButton();
