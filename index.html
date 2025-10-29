@@ -52,7 +52,6 @@
             touch-action: pan-y;
         }
         
-        /* Header - Hinge Style */
         .header {
             height: auto;
             flex-shrink: 0;
@@ -149,7 +148,6 @@
             }
         }
         
-        /* Main Profile Area - Hinge Style */
         .main-content {
             flex: 1;
             position: relative;
@@ -383,7 +381,6 @@
             line-height: 1.5;
         }
         
-        /* Chat Panel - Hinge Style */
         .chat-panel {
             position: fixed;
             bottom: 0;
@@ -597,7 +594,6 @@
             font-weight: 500;
         }
         
-        /* Swipe Feedback */
         .swipe-feedback {
             position: fixed;
             top: 50%;
@@ -643,7 +639,115 @@
             font-weight: 500;
         }
         
-        /* Scrollbar styling */
+        .ghost-notification-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .ghost-notification-overlay.show {
+            display: flex;
+        }
+        
+        .ghost-notification-content {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px 32px;
+            max-width: 340px;
+            width: 88%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUpModal 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .ghost-notification-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .ghost-notification-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #000;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        
+        .ghost-notification-message {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+        
+        .ghost-notification-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .ghost-notification-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .ghost-notification-btn.decline {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .ghost-notification-btn.decline:hover {
+            background: #e0e0e0;
+        }
+        
+        .ghost-notification-btn.accept {
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ghost-notification-btn.accept:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .ghost-notification-btn:active {
+            transform: scale(0.95);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUpModal {
+            from {
+                transform: translateY(40px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -662,7 +766,6 @@
             background: #ccc;
         }
         
-        /* Toast notification animations */
         @keyframes slideDown {
             from {
                 transform: translateX(-50%) translateY(-20px);
@@ -674,7 +777,7 @@
             }
         }
         
-        @keyframes slideUp {
+        @keyframes slideUpAnim {
             from {
                 transform: translateX(-50%) translateY(0);
                 opacity: 1;
@@ -688,7 +791,6 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Header -->
         <div class="header">
             <div class="header-content">
                 <div class="app-title">
@@ -701,11 +803,8 @@
             </div>
         </div>
         
-        <!-- Main Content -->
         <div class="main-content">
-            <div class="card-area" id="cardContainer">
-                <!-- Cards will be loaded here -->
-            </div>
+            <div class="card-area" id="cardContainer"></div>
             
             <div class="swipe-actions">
                 <button class="swipe-button nope" onclick="swipeLeft()">✕</button>
@@ -715,16 +814,13 @@
             <div class="debug-info" id="debugInfo">Connecting...</div>
         </div>
         
-        <!-- Chat Panel (full screen overlay) -->
         <div class="chat-panel" id="chatPanel">
             <div class="chat-panel-header">
                 <span class="chat-panel-title">Matches</span>
                 <button class="close-chat-btn" onclick="toggleChatPanel()">×</button>
             </div>
             
-            <div class="match-tabs" id="matchTabs">
-                <!-- Match tabs will be added here -->
-            </div>
+            <div class="match-tabs" id="matchTabs"></div>
             
             <div class="chat-messages" id="chatMessages">
                 <div class="empty-chat">
@@ -749,6 +845,18 @@
     </div>
     
     <div class="swipe-feedback" id="swipeFeedback"></div>
+    
+    <div class="ghost-notification-overlay" id="ghostNotificationOverlay">
+        <div class="ghost-notification-content">
+            <div class="ghost-notification-icon">👻</div>
+            <h2 class="ghost-notification-title">Start Fresh?</h2>
+            <p class="ghost-notification-message">Your terrarium is getting crowded. Clear space for new connections?</p>
+            <div class="ghost-notification-buttons">
+                <button class="ghost-notification-btn decline" onclick="declineGhosting()">Keep Them</button>
+                <button class="ghost-notification-btn accept" onclick="acceptGhosting()">Start Fresh</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let ws = null;
@@ -758,7 +866,8 @@
         let matches = [];
         let currentMatchName = null;
         let messagedMatches = new Set();
-        let matchConversations = {}; // Store conversations per match: { miiName: [{from: 'user'|'match', text: '...'}] }
+        let matchConversations = {};
+        let ghostNotificationTimer = null;
         
         const profiles = [
             { name: 'Crab', age: '2', emoji: '🦀', bio: 'I walk sideways and I\'m not sorry about it. Will pinch you on the first date (romantically). Living my best crustacean life.', interests: ['🏖️ Beaches', '🪨 Hiding', '🌊 Scuttling'] },
@@ -776,7 +885,7 @@
         ];
         
         function connectWebSocket() {
-            const wsUrl = 'wss://miingeapp.onrender.com';
+            const wsUrl = 'wss://swipemeapp.onrender.com';
             updateDebugInfo('Connecting...');
             
             try {
@@ -792,12 +901,11 @@
                     console.log('Message from server:', event.data);
                     updateDebugInfo('Msg: ' + event.data.substring(0, 20));
                     
-                    // Handle incoming messages from matched Miis
                     if (event.data.startsWith('match_reply:')) {
                         const parts = event.data.split(':');
                         if (parts.length >= 3) {
                             const miiName = parts[1];
-                            const message = parts.slice(2).join(':'); // Rejoin in case message has colons
+                            const message = parts.slice(2).join(':');
                             handleMatchReply(miiName, message);
                         }
                     }
@@ -829,7 +937,6 @@
         
         function sendCommand(command) {
             if (ws && ws.readyState === WebSocket.OPEN) {
-                // Add 'web:' prefix to match Unity's expected format
                 const message = 'web:' + command;
                 ws.send(message);
                 console.log('Sent:', message);
@@ -969,7 +1076,6 @@
             const profileName = profiles[currentCardIndex].name;
             const profile = profiles[currentCardIndex];
             
-            // Add to matches
             matches.push({
                 name: profileName,
                 emoji: profile.emoji,
@@ -982,7 +1088,6 @@
             sendCommand('spawn_cube:' + profileName);
             showSwipeFeedback('like');
             
-            // Update match tabs and button indicator
             renderMatchTabs();
             updateChatToggleButton();
         }
@@ -1040,7 +1145,7 @@
             
             tabsContainer.innerHTML = '';
             
-            matches.forEach((match, index) => {
+            matches.forEach((match) => {
                 const tab = document.createElement('button');
                 tab.className = 'match-tab';
                 tab.textContent = `${match.emoji} ${match.name}`;
@@ -1077,7 +1182,6 @@
                 return;
             }
             
-            // Remove notification dot when viewing this match's messages
             const tabs = document.querySelectorAll('.match-tab');
             tabs.forEach(tab => {
                 if (tab.textContent.includes(currentMatchName)) {
@@ -1086,7 +1190,6 @@
                 }
             });
             
-            // Get conversation history for current match
             const conversation = matchConversations[currentMatchName] || [];
             
             if (conversation.length === 0) {
@@ -1097,7 +1200,6 @@
                     </div>
                 `;
             } else {
-                // Display conversation
                 messagesContainer.innerHTML = conversation.map(msg => {
                     if (msg.from === 'user') {
                         return `
@@ -1118,7 +1220,6 @@
                     }
                 }).join('');
                 
-                // Scroll to bottom
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
             
@@ -1156,10 +1257,8 @@
             
             if (!message || !currentMatchName || messagedMatches.has(currentMatchName)) return;
             
-            // Send message via WebSocket
             sendCommand(`send_message:${currentMatchName}:${message}`);
             
-            // Store sent message in conversation
             if (!matchConversations[currentMatchName]) {
                 matchConversations[currentMatchName] = [];
             }
@@ -1169,24 +1268,19 @@
                 timestamp: Date.now()
             });
             
-            // Mark as messaged
             messagedMatches.add(currentMatchName);
             
-            // Update UI
             messageInput.value = '';
             updateSendButton();
             
-            // Show confirmation
             updateDebugInfo(`Sent to ${currentMatchName}`);
             
-            // Update chat display
             updateChatMessages();
         }
         
         function handleMatchReply(miiName, message) {
             console.log(`Received reply from ${miiName}: ${message}`);
             
-            // Store received message in conversation
             if (!matchConversations[miiName]) {
                 matchConversations[miiName] = [];
             }
@@ -1196,24 +1290,20 @@
                 timestamp: Date.now()
             });
             
-            // Show notification badge if chat is closed or different match is selected
             const panel = document.getElementById('chatPanel');
             if (!panel.classList.contains('open') || currentMatchName !== miiName) {
                 updateChatToggleButton();
                 showNotificationBadge(miiName);
             }
             
-            // If viewing this match's chat, update the display
             if (currentMatchName === miiName && panel.classList.contains('open')) {
                 updateChatMessages();
             }
             
-            // Show a quick toast notification
             showToastNotification(`💬 ${miiName} replied!`);
         }
         
         function showNotificationBadge(miiName) {
-            // Add a visual indicator on the match's tab
             const tabs = document.querySelectorAll('.match-tab');
             tabs.forEach(tab => {
                 if (tab.textContent.includes(miiName) && !tab.classList.contains('active')) {
@@ -1250,12 +1340,46 @@
             document.body.appendChild(toast);
             
             setTimeout(() => {
-                toast.style.animation = 'slideUp 0.3s ease';
+                toast.style.animation = 'slideUpAnim 0.3s ease';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
         }
         
-        // Allow Enter to send (Shift+Enter for new line)
+        function scheduleGhostNotification() {
+            const minDelay = 5 * 60 * 1000;
+            const randomDelay = Math.random() * 5 * 60 * 1000;
+            const delay = minDelay + randomDelay;
+            
+            ghostNotificationTimer = setTimeout(() => {
+                if (Math.random() < 0.1) {
+                    showGhostNotification();
+                }
+                scheduleGhostNotification();
+            }, delay);
+        }
+        
+        function showGhostNotification() {
+            const overlay = document.getElementById('ghostNotificationOverlay');
+            overlay.classList.add('show');
+            console.log('Ghost notification shown');
+        }
+        
+        function declineGhosting() {
+            const overlay = document.getElementById('ghostNotificationOverlay');
+            overlay.classList.remove('show');
+            console.log('User declined ghosting');
+        }
+        
+        function acceptGhosting() {
+            const overlay = document.getElementById('ghostNotificationOverlay');
+            overlay.classList.remove('show');
+            
+            sendCommand('mass_ghost');
+            
+            showToastNotification('👻 Starting fresh...');
+            console.log('User accepted ghosting - mass extinction triggered');
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
             const messageInput = document.getElementById('messageInput');
             messageInput.addEventListener('keydown', (e) => {
@@ -1271,6 +1395,7 @@
             loadNextCard();
             updateSendButton();
             updateChatToggleButton();
+            scheduleGhostNotification();
         }
         
         init();
