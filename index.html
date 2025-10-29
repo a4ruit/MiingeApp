@@ -859,556 +859,541 @@
     </div>
 
     <script>
-        let ws = null;
-        let isConnected = false;
-        let currentCardIndex = 0;
-        let isAnimating = false;
-        let matches = [];
-        let currentMatchName = null;
-        let messagedMatches = new Set();
-        let matchConversations = {};
-        let ghostNotificationTimer = null;
+let ws = null;
+let isConnected = false;
+let currentCardIndex = 0;
+let isAnimating = false;
+let matches = [];
+let currentMatchName = null;
+let messagedMatches = new Set();
+let matchConversations = {};
+const GHOST_THRESHOLD = 10;
+
+const profiles = [
+    { name: 'Crab', age: '2', emoji: '🦀', bio: 'I walk sideways and I\'m not sorry about it. Will pinch you on the first date (romantically). Living my best crustacean life.', interests: ['🏖️ Beaches', '🪨 Hiding', '🌊 Scuttling'] },
+    { name: 'The Void', age: '∞', emoji: '🕳️', bio: 'Endless darkness seeking same. Into staring contests (I always win). No baggage because I contain all of existence.', interests: ['👁️ Staring', '🌌 Existing', '❓ Mystery'] },
+    { name: 'GABAGOOOOL', age: '32', emoji: '🥩', bio: 'OVA HEREEEE', interests: ['🍖' ] },
+    { name: 'Gerald', age: '73', emoji: '🦆', bio: 'Just a duck trying to find love in this crazy pond. I have bread. You have bread? We should share bread. QUACK QUACK.', interests: ['🍞 Bread', '💦 Puddles', '🦆 Quacking'] },
+    { name: 'Microwave', age: '12', emoji: '📱', bio: 'MMMMMMMMMMMMMM. I heat things up fast. Spinning plate included. Will never judge your 3am hot pocket cravings.', interests: ['🔥 Heating', '⏰ Beeping', '🍕 Leftovers'] },
+    { name: 'Existential Dread', age: '??', emoji: '😰', bio: 'Are we real? Is this app real? What if we match and it means nothing? Actually that sounds perfect. Let\'s be anxious together.', interests: ['🤔 Overthinking', '😱 Panicking', '🌙 3AM Thoughts'] },
+    { name: 'Capybara CEO', age: '5', emoji: '🐹', bio: 'Chill vibes only. Built a fortune 500 by just vibing in hot springs with oranges on my head. Looking for my orange.', interests: ['🛁 Hot Springs', '🍊 Oranges', '😌 Vibing'] },
+    { name: 'Sentient Cheese', age: '69', emoji: '🧀', bio: 'I\'ve been aging gracefully in a cave for years. Very mature for my age. Holey but whole. Not lactose intolerant people only.', interests: ['🍷 Wine', '🕳️ Holes', '🧂 Salt'] },
+    { name: 'Traffic Cone', age: '8', emoji: '🚧', bio: 'I stand out in a crowd. Orange is my color year-round. Looking for someone to respect my boundaries (literally I mark them).', interests: ['🚗 Roads', '⚠️ Safety', '🟠 Orange'] },
+    { name: 'Sock Thief', age: '1', emoji: '🧦', bio: 'Your dryer\'s worst nightmare. I have a collection of 847 unmatched socks. Come over and try to find your pair. You won\'t.', interests: ['👕 Laundry', '🕵️ Stealing', '🏠 Dryers'] },
+    { name: 'Houseplant', age: '3', emoji: '🪴', bio: 'I literally just sit here and photosynthesize. Water me on Tuesdays. Spider mites need not apply. Cat owners swipe left.', interests: ['☀️ Sunlight', '💧 Water', '🌱 Growing'] },
+    { name: 'Neighbor\'s WiFi', age: '7', emoji: '📶', bio: 'Password protected but willing to share with the right person. Strong connection guaranteed. Sometimes I go down but I always come back up.', interests: ['💻 Connection', '🔐 Security', '⚡ Speed'] }
+];
+
+function connectWebSocket() {
+    const wsUrl = 'wss://swipemeapp.onrender.com';
+    updateDebugInfo('Connecting...');
+    
+    try {
+        ws = new WebSocket(wsUrl);
         
-        const profiles = [
-            { name: 'Crab', age: '2', emoji: '🦀', bio: 'I walk sideways and I\'m not sorry about it. Will pinch you on the first date (romantically). Living my best crustacean life.', interests: ['🏖️ Beaches', '🪨 Hiding', '🌊 Scuttling'] },
-            { name: 'The Void', age: '∞', emoji: '🕳️', bio: 'Endless darkness seeking same. Into staring contests (I always win). No baggage because I contain all of existence.', interests: ['👁️ Staring', '🌌 Existing', '❓ Mystery'] },
-            { name: 'GABAGOOOOL', age: '32', emoji: '🥩', bio: 'OVA HEREEEE', interests: ['🍖' ] },
-            { name: 'Gerald', age: '73', emoji: '🦆', bio: 'Just a duck trying to find love in this crazy pond. I have bread. You have bread? We should share bread. QUACK QUACK.', interests: ['🍞 Bread', '💦 Puddles', '🦆 Quacking'] },
-            { name: 'Microwave', age: '12', emoji: '📱', bio: 'MMMMMMMMMMMMMM. I heat things up fast. Spinning plate included. Will never judge your 3am hot pocket cravings.', interests: ['🔥 Heating', '⏰ Beeping', '🍕 Leftovers'] },
-            { name: 'Existential Dread', age: '??', emoji: '😰', bio: 'Are we real? Is this app real? What if we match and it means nothing? Actually that sounds perfect. Let\'s be anxious together.', interests: ['🤔 Overthinking', '😱 Panicking', '🌙 3AM Thoughts'] },
-            { name: 'Capybara CEO', age: '5', emoji: '🐹', bio: 'Chill vibes only. Built a fortune 500 by just vibing in hot springs with oranges on my head. Looking for my orange.', interests: ['🛁 Hot Springs', '🍊 Oranges', '😌 Vibing'] },
-            { name: 'Sentient Cheese', age: '69', emoji: '🧀', bio: 'I\'ve been aging gracefully in a cave for years. Very mature for my age. Holey but whole. Not lactose intolerant people only.', interests: ['🍷 Wine', '🕳️ Holes', '🧂 Salt'] },
-            { name: 'Traffic Cone', age: '8', emoji: '🚧', bio: 'I stand out in a crowd. Orange is my color year-round. Looking for someone to respect my boundaries (literally I mark them).', interests: ['🚗 Roads', '⚠️ Safety', '🟠 Orange'] },
-            { name: 'Sock Thief', age: '1', emoji: '🧦', bio: 'Your dryer\'s worst nightmare. I have a collection of 847 unmatched socks. Come over and try to find your pair. You won\'t.', interests: ['👕 Laundry', '🕵️ Stealing', '🏠 Dryers'] },
-            { name: 'Houseplant', age: '3', emoji: '🪴', bio: 'I literally just sit here and photosynthesize. Water me on Tuesdays. Spider mites need not apply. Cat owners swipe left.', interests: ['☀️ Sunlight', '💧 Water', '🌱 Growing'] },
-            { name: 'Neighbor\'s WiFi', age: '7', emoji: '📶', bio: 'Password protected but willing to share with the right person. Strong connection guaranteed. Sometimes I go down but I always come back up.', interests: ['💻 Connection', '🔐 Security', '⚡ Speed'] }
-        ];
+        ws.onopen = () => {
+            isConnected = true;
+            updateDebugInfo('Connected!');
+            updateConnectionStatus(true);
+        };
         
-        function connectWebSocket() {
-            const wsUrl = 'wss://swipemeapp.onrender.com';
-            updateDebugInfo('Connecting...');
+        ws.onmessage = (event) => {
+            console.log('Message from server:', event.data);
+            updateDebugInfo('Msg: ' + event.data.substring(0, 20));
             
-            try {
-                ws = new WebSocket(wsUrl);
-                
-                ws.onopen = () => {
-                    isConnected = true;
-                    updateDebugInfo('Connected!');
-                    updateConnectionStatus(true);
-                };
-                
-                ws.onmessage = (event) => {
-                    console.log('Message from server:', event.data);
-                    updateDebugInfo('Msg: ' + event.data.substring(0, 20));
-                    
-                    if (event.data.startsWith('match_reply:')) {
-                        const parts = event.data.split(':');
-                        if (parts.length >= 3) {
-                            const miiName = parts[1];
-                            const message = parts.slice(2).join(':');
-                            handleMatchReply(miiName, message);
-                        }
-                    }
-                };
-                
-                ws.onerror = (error) => {
-                    console.log('WebSocket error:', error);
-                    updateDebugInfo('Connection error');
-                    updateConnectionStatus(false);
-                };
-                
-                ws.onclose = () => {
-                    isConnected = false;
-                    updateDebugInfo('Disconnected');
-                    updateConnectionStatus(false);
-                    
-                    setTimeout(() => {
-                        if (!isConnected) {
-                            connectWebSocket();
-                        }
-                    }, 3000);
-                };
-            } catch (error) {
-                console.log('Connection failed:', error);
-                updateDebugInfo('Connection failed');
-                updateConnectionStatus(false);
-            }
-        }
-        
-        function sendCommand(command) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                const message = 'web:' + command;
-                ws.send(message);
-                console.log('✉️ SENT TO UNITY:', message);
-            } else {
-                console.log('❌ FAILED TO SEND - WebSocket not connected. State:', ws ? ws.readyState : 'null');
-                updateDebugInfo('Not connected!');
-            }
-        }
-        
-        function updateDebugInfo(message) {
-            const debugInfo = document.getElementById('debugInfo');
-            debugInfo.textContent = message;
-        }
-        
-        function updateConnectionStatus(connected) {
-            const dot = document.getElementById('connectionDot');
-            if (connected) {
-                dot.classList.add('connected');
-            } else {
-                dot.classList.remove('connected');
-            }
-        }
-        
-        function createProfileCard(profile, index) {
-            return `
-                <div class="profile-card" id="card-${index}" data-index="${index}">
-                    <div class="card-photo-section">
-                        <div class="profile-avatar">${profile.emoji}</div>
-                    </div>
-                    <div class="card-info-section">
-                        <div class="profile-name-age">
-                            <div class="profile-name">${profile.name}</div>
-                            <div class="profile-age">${profile.age}</div>
-                        </div>
-                        <div class="profile-bio">${profile.bio}</div>
-                        <div class="profile-interests">
-                            ${profile.interests.map(interest => 
-                                `<span class="interest-tag">${interest}</span>`
-                            ).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function loadNextCard() {
-            const container = document.getElementById('cardContainer');
-            
-            if (currentCardIndex >= profiles.length) {
-                container.innerHTML = `
-                    <div class="no-more-cards">
-                        <h2>You're all caught up!</h2>
-                        <p>Check back later for new profiles</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const cardHtml = createProfileCard(profiles[currentCardIndex], currentCardIndex);
-            container.innerHTML = cardHtml;
-            addCardInteraction();
-        }
-        
-        function addCardInteraction() {
-            const card = document.querySelector('.profile-card');
-            if (!card) return;
-            
-            let startX = 0;
-            let currentX = 0;
-            let isDragging = false;
-            
-            function handleStart(e) {
-                if (isAnimating) return;
-                isDragging = true;
-                startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
-                card.style.transition = 'none';
-            }
-            
-            function handleMove(e) {
-                if (!isDragging || isAnimating) return;
-                e.preventDefault();
-                currentX = (e.type === 'mousemove' ? e.clientX : e.touches[0].clientX) - startX;
-                const rotation = currentX * 0.05;
-                card.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
-                card.style.opacity = 1 - Math.abs(currentX) / 300;
-            }
-            
-            function handleEnd() {
-                if (!isDragging || isAnimating) return;
-                isDragging = false;
-                card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-                
-                if (Math.abs(currentX) > 80) {
-                    if (currentX > 0) {
-                        swipeRight();
-                    } else {
-                        swipeLeft();
-                    }
-                } else {
-                    card.style.transform = 'translateX(0) rotate(0deg)';
-                    card.style.opacity = 1;
+            if (event.data.startsWith('match_reply:')) {
+                const parts = event.data.split(':');
+                if (parts.length >= 3) {
+                    const miiName = parts[1];
+                    const message = parts.slice(2).join(':');
+                    handleMatchReply(miiName, message);
                 }
             }
-            
-            card.addEventListener('mousedown', handleStart);
-            document.addEventListener('mousemove', handleMove);
-            document.addEventListener('mouseup', handleEnd);
-            
-            card.addEventListener('touchstart', handleStart, { passive: false });
-            document.addEventListener('touchmove', handleMove, { passive: false });
-            document.addEventListener('touchend', handleEnd);
-        }
+        };
         
-        function showSwipeFeedback(type) {
-            const feedback = document.getElementById('swipeFeedback');
-            feedback.textContent = type === 'like' ? 'MATCH!' : 'PASS';
-            feedback.className = `swipe-feedback ${type} show`;
+        ws.onerror = (error) => {
+            console.log('WebSocket error:', error);
+            updateDebugInfo('Connection error');
+            updateConnectionStatus(false);
+        };
+        
+        ws.onclose = () => {
+            isConnected = false;
+            updateDebugInfo('Disconnected');
+            updateConnectionStatus(false);
             
             setTimeout(() => {
-                feedback.className = 'swipe-feedback';
-            }, 1000);
-        }
-        
-        function swipeLeft() {
-            if (isAnimating) return;
-            animateCard('left');
-            
-            const profileName = profiles[currentCardIndex].name;
-            console.log('🚫 SWIPING LEFT:', profileName);
-            sendCommand('reject_cube:' + profileName);
-            
-            showSwipeFeedback('nope');
-        }
-        
-        function swipeRight() {
-            if (isAnimating) return;
-            
-            const profileName = profiles[currentCardIndex].name;
-            const profile = profiles[currentCardIndex];
-            
-            console.log('💖 SWIPING RIGHT:', profileName);
-            
-            matches.push({
-                name: profileName,
-                emoji: profile.emoji,
-                age: profile.age
-            });
-            
-            currentMatchName = profileName;
-            
-            animateCard('right');
-            sendCommand('spawn_cube:' + profileName);
-            showSwipeFeedback('like');
-            
-            renderMatchTabs();
-            updateChatToggleButton();
-        }
-        
-        function animateCard(direction) {
-            isAnimating = true;
-            const card = document.querySelector('.profile-card');
-            if (!card) return;
-            
-            card.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
-            card.className = `profile-card card-swiping-${direction}`;
-            
-            setTimeout(() => {
-                currentCardIndex++;
-                loadNextCard();
-                isAnimating = false;
-            }, 400);
-        }
-        
-        function toggleChatPanel() {
-            const panel = document.getElementById('chatPanel');
-            panel.classList.toggle('open');
-            
-            if (panel.classList.contains('open') && matches.length > 0) {
-                renderMatchTabs();
-                updateChatMessages();
-            }
-        }
-        
-        function updateChatToggleButton() {
-            const btn = document.getElementById('chatToggleBtn');
-            if (matches.length > 0) {
-                btn.classList.add('has-matches');
-                btn.innerHTML = `💬 Chat (${matches.length})`;
-            } else {
-                btn.classList.remove('has-matches');
-                btn.innerHTML = '💬 Chat';
-            }
-        }
-        
-        function renderMatchTabs() {
-            const tabsContainer = document.getElementById('matchTabs');
-            const messagesContainer = document.getElementById('chatMessages');
-            
-            if (matches.length === 0) {
-                tabsContainer.innerHTML = '';
-                messagesContainer.innerHTML = `
-                    <div class="empty-chat">
-                        <p>No matches yet!</p>
-                        <p>Swipe right to start matching</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            tabsContainer.innerHTML = '';
-            
-            matches.forEach((match) => {
-                const tab = document.createElement('button');
-                tab.className = 'match-tab';
-                tab.textContent = `${match.emoji} ${match.name}`;
-                
-                if (match.name === currentMatchName) {
-                    tab.classList.add('active');
+                if (!isConnected) {
+                    connectWebSocket();
                 }
-                
-                tab.onclick = () => selectMatch(match.name);
-                tabsContainer.appendChild(tab);
-            });
-            
-            updateChatMessages();
-        }
-        
-        function selectMatch(name) {
-            currentMatchName = name;
-            renderMatchTabs();
-            updateSendButton();
-            
-            const messageInput = document.getElementById('messageInput');
-            messageInput.value = '';
-        }
-        
-        function updateChatMessages() {
-            const messagesContainer = document.getElementById('chatMessages');
-            
-            if (!currentMatchName) {
-                messagesContainer.innerHTML = `
-                    <div class="empty-chat">
-                        <p>Select a match to start chatting!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const tabs = document.querySelectorAll('.match-tab');
-            tabs.forEach(tab => {
-                if (tab.textContent.includes(currentMatchName)) {
-                    const dot = tab.querySelector('.notification-dot');
-                    if (dot) dot.remove();
-                }
-            });
-            
-            const conversation = matchConversations[currentMatchName] || [];
-            
-            if (conversation.length === 0) {
-                messagesContainer.innerHTML = `
-                    <div class="empty-chat">
-                        <p>You matched with ${currentMatchName}!</p>
-                        <p>Start the conversation with a message below</p>
-                    </div>
-                `;
-            } else {
-                messagesContainer.innerHTML = conversation.map(msg => {
-                    if (msg.from === 'user') {
-                        return `
-                            <div style="margin-bottom: 12px; text-align: right;">
-                                <div style="display: inline-block; background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; padding: 10px 14px; border-radius: 16px 16px 4px 16px; max-width: 70%; font-size: 13px; line-height: 1.4;">
-                                    ${escapeHtml(msg.text)}
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        return `
-                            <div style="margin-bottom: 12px; text-align: left;">
-                                <div style="display: inline-block; background: #f0f0f0; color: #333; padding: 10px 14px; border-radius: 16px 16px 16px 4px; max-width: 70%; font-size: 13px; line-height: 1.4;">
-                                    ${escapeHtml(msg.text)}
-                                </div>
-                            </div>
-                        `;
-                    }
-                }).join('');
-                
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-            
-            updateSendButton();
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        function updateSendButton() {
-            const sendBtn = document.getElementById('sendBtn');
-            const limitInfo = document.getElementById('messageLimitInfo');
-            
-            if (!currentMatchName) {
-                sendBtn.disabled = true;
-                limitInfo.textContent = 'Select a match first';
-                limitInfo.style.color = '#999';
-            } else if (messagedMatches.has(currentMatchName)) {
-                sendBtn.disabled = true;
-                limitInfo.textContent = `Already messaged ${currentMatchName}`;
-                limitInfo.style.color = '#ff6b9d';
-            } else {
-                sendBtn.disabled = false;
-                limitInfo.textContent = '1 message per match';
-                limitInfo.style.color = '#999';
-            }
-        }
-        
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value.trim();
-            
-            if (!message || !currentMatchName || messagedMatches.has(currentMatchName)) return;
-            
-            sendCommand(`send_message:${currentMatchName}:${message}`);
-            
-            if (!matchConversations[currentMatchName]) {
-                matchConversations[currentMatchName] = [];
-            }
-            matchConversations[currentMatchName].push({
-                from: 'user',
-                text: message,
-                timestamp: Date.now()
-            });
-            
-            messagedMatches.add(currentMatchName);
-            
-            messageInput.value = '';
-            updateSendButton();
-            
-            updateDebugInfo(`Sent to ${currentMatchName}`);
-            
-            updateChatMessages();
-        }
-        
-        function handleMatchReply(miiName, message) {
-            console.log(`Received reply from ${miiName}: ${message}`);
-            
-            if (!matchConversations[miiName]) {
-                matchConversations[miiName] = [];
-            }
-            matchConversations[miiName].push({
-                from: 'match',
-                text: message,
-                timestamp: Date.now()
-            });
-            
-            const panel = document.getElementById('chatPanel');
-            if (!panel.classList.contains('open') || currentMatchName !== miiName) {
-                updateChatToggleButton();
-                showNotificationBadge(miiName);
-            }
-            
-            if (currentMatchName === miiName && panel.classList.contains('open')) {
-                updateChatMessages();
-            }
-            
-            showToastNotification(`💬 ${miiName} replied!`);
-        }
-        
-        function showNotificationBadge(miiName) {
-            const tabs = document.querySelectorAll('.match-tab');
-            tabs.forEach(tab => {
-                if (tab.textContent.includes(miiName) && !tab.classList.contains('active')) {
-                    tab.style.position = 'relative';
-                    if (!tab.querySelector('.notification-dot')) {
-                        const dot = document.createElement('span');
-                        dot.className = 'notification-dot';
-                        dot.style.cssText = 'position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #ff6b9d; border-radius: 50%; border: 2px solid white;';
-                        tab.appendChild(dot);
-                    }
-                }
-            });
-        }
-        
-        function showToastNotification(message) {
-            const toast = document.createElement('div');
-            toast.textContent = message;
-            toast.style.cssText = `
-                position: fixed;
-                top: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
-                color: white;
-                padding: 12px 24px;
-                border-radius: 24px;
-                font-size: 14px;
-                font-weight: 600;
-                z-index: 1001;
-                box-shadow: 0 4px 20px rgba(255, 107, 157, 0.4);
-                animation: slideDown 0.3s ease;
-            `;
-            
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.animation = 'slideUpAnim 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
             }, 3000);
-        }
+        };
+    } catch (error) {
+        console.log('Connection failed:', error);
+        updateDebugInfo('Connection failed');
+        updateConnectionStatus(false);
+    }
+}
+
+function sendCommand(command) {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        const message = 'web:' + command;
+        ws.send(message);
+        console.log('✉️ SENT TO UNITY:', message);
+    } else {
+        console.log('❌ FAILED TO SEND - WebSocket not connected. State:', ws ? ws.readyState : 'null');
+        updateDebugInfo('Not connected!');
+    }
+}
+
+function updateDebugInfo(message) {
+    const debugInfo = document.getElementById('debugInfo');
+    debugInfo.textContent = message;
+}
+
+function updateConnectionStatus(connected) {
+    const dot = document.getElementById('connectionDot');
+    if (connected) {
+        dot.classList.add('connected');
+    } else {
+        dot.classList.remove('connected');
+    }
+}
+
+function createProfileCard(profile, index) {
+    return `
+        <div class="profile-card" id="card-${index}" data-index="${index}">
+            <div class="card-photo-section">
+                <div class="profile-avatar">${profile.emoji}</div>
+            </div>
+            <div class="card-info-section">
+                <div class="profile-name-age">
+                    <div class="profile-name">${profile.name}</div>
+                    <div class="profile-age">${profile.age}</div>
+                </div>
+                <div class="profile-bio">${profile.bio}</div>
+                <div class="profile-interests">
+                    ${profile.interests.map(interest => 
+                        `<span class="interest-tag">${interest}</span>`
+                    ).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function loadNextCard() {
+    const container = document.getElementById('cardContainer');
+    
+    if (currentCardIndex >= profiles.length) {
+        container.innerHTML = `
+            <div class="no-more-cards">
+                <h2>You're all caught up!</h2>
+                <p>Check back later for new profiles</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const cardHtml = createProfileCard(profiles[currentCardIndex], currentCardIndex);
+    container.innerHTML = cardHtml;
+    addCardInteraction();
+}
+
+function addCardInteraction() {
+    const card = document.querySelector('.profile-card');
+    if (!card) return;
+    
+    let startX = 0;
+    let currentX = 0;
+    let isDragging = false;
+    
+    function handleStart(e) {
+        if (isAnimating) return;
+        isDragging = true;
+        startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+        card.style.transition = 'none';
+    }
+    
+    function handleMove(e) {
+        if (!isDragging || isAnimating) return;
+        e.preventDefault();
+        currentX = (e.type === 'mousemove' ? e.clientX : e.touches[0].clientX) - startX;
+        const rotation = currentX * 0.05;
+        card.style.transform = `translateX(${currentX}px) rotate(${rotation}deg)`;
+        card.style.opacity = 1 - Math.abs(currentX) / 300;
+    }
+    
+    function handleEnd() {
+        if (!isDragging || isAnimating) return;
+        isDragging = false;
+        card.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
         
-        function scheduleGhostNotification() {
-            const minDelay = 5 * 60 * 1000;
-            const randomDelay = Math.random() * 5 * 60 * 1000;
-            const delay = minDelay + randomDelay;
-            
-            ghostNotificationTimer = setTimeout(() => {
-                if (Math.random() < 0.1) {
-                    showGhostNotification();
-                }
-                scheduleGhostNotification();
-            }, delay);
-        }
-        
-        function showGhostNotification() {
-            const overlay = document.getElementById('ghostNotificationOverlay');
-            overlay.classList.add('show');
-            console.log('Ghost notification shown');
-        }
-        
-        function declineGhosting() {
-            const overlay = document.getElementById('ghostNotificationOverlay');
-            overlay.classList.remove('show');
-            console.log('User declined ghosting');
-        }
-        
-        function acceptGhosting() {
-            const overlay = document.getElementById('ghostNotificationOverlay');
-            overlay.classList.remove('show');
-            
-            sendCommand('mass_ghost');
-            
-            showToastNotification('👻 Starting fresh...');
-            console.log('User accepted ghosting - mass extinction triggered');
-        }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const messageInput = document.getElementById('messageInput');
-            messageInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-        });
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'g' || e.key === 'G') {
-                console.log('🧪 Testing: Ghost notification triggered manually');
-                showGhostNotification();
+        if (Math.abs(currentX) > 80) {
+            if (currentX > 0) {
+                swipeRight();
+            } else {
+                swipeLeft();
             }
-        });
+        } else {
+            card.style.transform = 'translateX(0) rotate(0deg)';
+            card.style.opacity = 1;
+        }
+    }
+    
+    card.addEventListener('mousedown', handleStart);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleEnd);
+    
+    card.addEventListener('touchstart', handleStart, { passive: false });
+    document.addEventListener('touchmove', handleMove, { passive: false });
+    document.addEventListener('touchend', handleEnd);
+}
+
+function showSwipeFeedback(type) {
+    const feedback = document.getElementById('swipeFeedback');
+    feedback.textContent = type === 'like' ? 'MATCH!' : 'PASS';
+    feedback.className = `swipe-feedback ${type} show`;
+    
+    setTimeout(() => {
+        feedback.className = 'swipe-feedback';
+    }, 1000);
+}
+
+function swipeLeft() {
+    if (isAnimating) return;
+    animateCard('left');
+    
+    const profileName = profiles[currentCardIndex].name;
+    console.log('🚫 SWIPING LEFT:', profileName);
+    sendCommand('reject_cube:' + profileName);
+    
+    showSwipeFeedback('nope');
+}
+
+function swipeRight() {
+    if (isAnimating) return;
+    
+    const profileName = profiles[currentCardIndex].name;
+    const profile = profiles[currentCardIndex];
+    
+    console.log('💖 SWIPING RIGHT:', profileName);
+    
+    matches.push({
+        name: profileName,
+        emoji: profile.emoji,
+        age: profile.age
+    });
+    
+    currentMatchName = profileName;
+    
+    animateCard('right');
+    sendCommand('spawn_cube:' + profileName);
+    showSwipeFeedback('like');
+    
+    renderMatchTabs();
+    updateChatToggleButton();
+}
+
+function animateCard(direction) {
+    isAnimating = true;
+    const card = document.querySelector('.profile-card');
+    if (!card) return;
+    
+    card.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+    card.className = `profile-card card-swiping-${direction}`;
+    
+    setTimeout(() => {
+        currentCardIndex++;
+        loadNextCard();
+        isAnimating = false;
+    }, 400);
+}
+
+function toggleChatPanel() {
+    const panel = document.getElementById('chatPanel');
+    panel.classList.toggle('open');
+    
+    if (panel.classList.contains('open') && matches.length > 0) {
+        renderMatchTabs();
+        updateChatMessages();
+    }
+}
+
+function updateChatToggleButton() {
+    const btn = document.getElementById('chatToggleBtn');
+    if (matches.length > 0) {
+        btn.classList.add('has-matches');
+        btn.innerHTML = `💬 Chat (${matches.length})`;
+    } else {
+        btn.classList.remove('has-matches');
+        btn.innerHTML = '💬 Chat';
+    }
+}
+
+function renderMatchTabs() {
+    const tabsContainer = document.getElementById('matchTabs');
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    if (matches.length === 0) {
+        tabsContainer.innerHTML = '';
+        messagesContainer.innerHTML = `
+            <div class="empty-chat">
+                <p>No matches yet!</p>
+                <p>Swipe right to start matching</p>
+            </div>
+        `;
+        return;
+    }
+    
+    tabsContainer.innerHTML = '';
+    
+    matches.forEach((match) => {
+        const tab = document.createElement('button');
+        tab.className = 'match-tab';
+        tab.textContent = `${match.emoji} ${match.name}`;
         
-        function init() {
-            connectWebSocket();
-            loadNextCard();
-            updateSendButton();
-            updateChatToggleButton();
-            scheduleGhostNotification();
+        if (match.name === currentMatchName) {
+            tab.classList.add('active');
         }
         
-        init();
+        tab.onclick = () => selectMatch(match.name);
+        tabsContainer.appendChild(tab);
+    });
+    
+    updateChatMessages();
+}
+
+function selectMatch(name) {
+    currentMatchName = name;
+    renderMatchTabs();
+    updateSendButton();
+    
+    const messageInput = document.getElementById('messageInput');
+    messageInput.value = '';
+}
+
+function updateChatMessages() {
+    const messagesContainer = document.getElementById('chatMessages');
+    
+    if (!currentMatchName) {
+        messagesContainer.innerHTML = `
+            <div class="empty-chat">
+                <p>Select a match to start chatting!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const tabs = document.querySelectorAll('.match-tab');
+    tabs.forEach(tab => {
+        if (tab.textContent.includes(currentMatchName)) {
+            const dot = tab.querySelector('.notification-dot');
+            if (dot) dot.remove();
+        }
+    });
+    
+    const conversation = matchConversations[currentMatchName] || [];
+    
+    if (conversation.length === 0) {
+        messagesContainer.innerHTML = `
+            <div class="empty-chat">
+                <p>You matched with ${currentMatchName}!</p>
+                <p>Start the conversation with a message below</p>
+            </div>
+        `;
+    } else {
+        messagesContainer.innerHTML = conversation.map(msg => {
+            if (msg.from === 'user') {
+                return `
+                    <div style="margin-bottom: 12px; text-align: right;">
+                        <div style="display: inline-block; background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; padding: 10px 14px; border-radius: 16px 16px 4px 16px; max-width: 70%; font-size: 13px; line-height: 1.4;">
+                            ${escapeHtml(msg.text)}
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div style="margin-bottom: 12px; text-align: left;">
+                        <div style="display: inline-block; background: #f0f0f0; color: #333; padding: 10px 14px; border-radius: 16px 16px 16px 4px; max-width: 70%; font-size: 13px; line-height: 1.4;">
+                            ${escapeHtml(msg.text)}
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
+        
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    updateSendButton();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateSendButton() {
+    const sendBtn = document.getElementById('sendBtn');
+    const limitInfo = document.getElementById('messageLimitInfo');
+    
+    if (!currentMatchName) {
+        sendBtn.disabled = true;
+        limitInfo.textContent = 'Select a match first';
+        limitInfo.style.color = '#999';
+    } else if (messagedMatches.has(currentMatchName)) {
+        sendBtn.disabled = true;
+        limitInfo.textContent = `Already messaged ${currentMatchName}`;
+        limitInfo.style.color = '#ff6b9d';
+    } else {
+        sendBtn.disabled = false;
+        limitInfo.textContent = '1 message per match';
+        limitInfo.style.color = '#999';
+    }
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    
+    if (!message || !currentMatchName || messagedMatches.has(currentMatchName)) return;
+    
+    sendCommand(`send_message:${currentMatchName}:${message}`);
+    
+    if (!matchConversations[currentMatchName]) {
+        matchConversations[currentMatchName] = [];
+    }
+    matchConversations[currentMatchName].push({
+        from: 'user',
+        text: message,
+        timestamp: Date.now()
+    });
+    
+    messagedMatches.add(currentMatchName);
+    
+    messageInput.value = '';
+    updateSendButton();
+    updateDebugInfo(`Sent to ${currentMatchName}`);
+    updateChatMessages();
+    
+    // Check if user has unlocked mass ghost feature
+    if (messagedMatches.size === GHOST_THRESHOLD) {
+        console.log(`🎉 User has messaged ${GHOST_THRESHOLD} matches! Unlocking ghost feature...`);
+        setTimeout(() => {
+            showGhostNotification();
+        }, 1000);
+    }
+}
+
+function handleMatchReply(miiName, message) {
+    console.log(`Received reply from ${miiName}: ${message}`);
+    
+    if (!matchConversations[miiName]) {
+        matchConversations[miiName] = [];
+    }
+    matchConversations[miiName].push({
+        from: 'match',
+        text: message,
+        timestamp: Date.now()
+    });
+    
+    const panel = document.getElementById('chatPanel');
+    if (!panel.classList.contains('open') || currentMatchName !== miiName) {
+        updateChatToggleButton();
+        showNotificationBadge(miiName);
+    }
+    
+    if (currentMatchName === miiName && panel.classList.contains('open')) {
+        updateChatMessages();
+    }
+    
+    showToastNotification(`💬 ${miiName} replied!`);
+}
+
+function showNotificationBadge(miiName) {
+    const tabs = document.querySelectorAll('.match-tab');
+    tabs.forEach(tab => {
+        if (tab.textContent.includes(miiName) && !tab.classList.contains('active')) {
+            tab.style.position = 'relative';
+            if (!tab.querySelector('.notification-dot')) {
+                const dot = document.createElement('span');
+                dot.className = 'notification-dot';
+                dot.style.cssText = 'position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background: #ff6b9d; border-radius: 50%; border: 2px solid white;';
+                tab.appendChild(dot);
+            }
+        }
+    });
+}
+
+function showToastNotification(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 1001;
+        box-shadow: 0 4px 20px rgba(255, 107, 157, 0.4);
+        animation: slideDown 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideUpAnim 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function showGhostNotification() {
+    const overlay = document.getElementById('ghostNotificationOverlay');
+    overlay.classList.add('show');
+    console.log(`🎉 Ghost notification shown - User has messaged ${messagedMatches.size} matches!`);
+}
+
+function declineGhosting() {
+    const overlay = document.getElementById('ghostNotificationOverlay');
+    overlay.classList.remove('show');
+    console.log('User declined ghosting');
+}
+
+function acceptGhosting() {
+    const overlay = document.getElementById('ghostNotificationOverlay');
+    overlay.classList.remove('show');
+    
+    sendCommand('mass_ghost');
+    
+    showToastNotification('👻 Starting fresh...');
+    console.log('User accepted ghosting - mass extinction triggered');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const messageInput = document.getElementById('messageInput');
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+});
+
+function init() {
+    connectWebSocket();
+    loadNextCard();
+    updateSendButton();
+    updateChatToggleButton();
+}
+
+init();
     </script>
 </body>
 </html>
