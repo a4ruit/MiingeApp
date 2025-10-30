@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwipeMe Terminal Admin</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .terminal {
+            max-width: 600px;
+            width: 100%;
+            border: 2px solid #0f0;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        .line {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .line.red {
+            color: #f00;
+        }
+        
+        .prompt {
+            margin-top: 20px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 14px;
+            background: #0f0;
+            margin-left: 4px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        button {
+            background: none;
+            border: 1px solid #0f0;
+            color: #0f0;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 16px;
+            text-align: left;
+            display: inline-block;
+            margin-top: 4px;
+            transition: all 0.2s;
+        }
+        
+        button:hover {
+            background: #0f0;
+            color: #000;
+        }
+        
+        button.red {
+            color: #f00;
+            border-color: #f00;
+        }
+        
+        button.red:hover {
+            background: #f00;
+            color: #000;
+        }
+        
+        .section {
+            margin-top: 25px;
+        }
+        
+        #log {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="line">SWIPEME ADMIN TERMINAL v2.1</div>
+        <div class="line">================================</div>
+        <div class="line" id="status">STATUS: DISCONNECTED</div>
+        <div class="line" id="commands">COMMANDS: 0</div>
+        
+        <div class="section">
+            <div class="line">&gt; COMMANDS:</div>
+            <div class="line">[1] <button onclick="cmd(1)">ghost_all</button></div>
+            <div class="line">[2] <button onclick="cmd(2)">clear_npcs</button></div>
+            <div class="line">[3] <button onclick="cmd(3)">clear_breadcrumbs</button></div>
+            <div class="line">[4] <button class="red" onclick="cmd(4)">emergency_reset</button></div>
+        </div>
+        
+        <div id="log"></div>
+        
+        <div class="prompt">
+            <span>&gt; </span><span class="cursor"></span>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let connected = false;
+        let count = 0;
+
+        function log(msg, isError = false) {
+            const d = document.createElement('div');
+            d.className = 'line' + (isError ? ' red' : '');
+            d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            document.getElementById('log').appendChild(d);
+            d.scrollIntoView();
+        }
+
+        function connect() {
+            log('connecting...');
+            ws = new WebSocket('wss://swipemeapp.onrender.com');
+            
+            ws.onopen = () => {
+                connected = true;
+                document.getElementById('status').textContent = 'STATUS: CONNECTED';
+                log('connected');
+            };
+            
+            ws.onmessage = (e) => {
+                log('< ' + e.data.substring(0, 50));
+            };
+            
+            ws.onerror = () => {
+                connected = false;
+                document.getElementById('status').textContent = 'STATUS: DISCONNECTED';
+                document.getElementById('status').className = 'line red';
+                log('error', true);
+            };
+            
+            ws.onclose = () => {
+                connected = false;
+                document.getElementById('status').textContent = 'STATUS: DISCONNECTED';
+                document.getElementById('status').className = 'line red';
+                log('disconnected', true);
+                setTimeout(() => {
+                    if (!connected) connect();
+                }, 3000);
+            };
+        }
+
+        function send(cmd) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send('web:' + cmd);
+                count++;
+                document.getElementById('commands').textContent = 'COMMANDS: ' + count;
+                log('> ' + cmd);
+                return true;
+            }
+            log('error: not connected', true);
+            return false;
+        }
+
+        function cmd(n) {
+            switch(n) {
+                case 1:
+                    send('mass_ghost');
+                    break;
+                case 2:
+                    send('clear_all');
+                    break;
+                case 3:
+                    send('clear_breadcrumbs');
+                    break;
+                case 4:
+                    log('EMERGENCY RESET', true);
+                    send('clear_all');
+                    setTimeout(() => send('clear_breadcrumbs'), 500);
+                    break;
+            }
+        }
+
+        connect();
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '1' && e.key <= '4') {
+                cmd(parseInt(e.key));
+            }
+        });
+    </script>
+</body>
+</html>
