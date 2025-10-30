@@ -1520,6 +1520,10 @@ function sendMessage() {
     updateDebugInfo(`Sent to ${currentMatchName}`);
     updateChatMessages();
     
+    // ADD THIS LINE HERE - Check for rare reply when user sends message
+    checkForRareReply(currentMatchName);
+    
+    // startTypingTease will be stopped by checkForRareReply if a reply happens
     startTypingTease(currentMatchName);
     
     // Activate void mode
@@ -1535,13 +1539,13 @@ function sendMessage() {
         }, 500);
     }
     
-if (messagedMatches.size >= GHOST_THRESHOLD && !hasShownGhostNotification) {
-    hasShownGhostNotification = true;
-    console.log(`🎉 User has messaged ${messagedMatches.size} matches! Unlocking ghost feature...`);
-    setTimeout(() => {
-        showGhostNotification();
-    }, 1000);
-}
+    if (messagedMatches.size >= GHOST_THRESHOLD && !hasShownGhostNotification) {
+        hasShownGhostNotification = true;
+        console.log(`🎉 User has messaged ${messagedMatches.size} matches! Unlocking ghost feature...`);
+        setTimeout(() => {
+            showGhostNotification();
+        }, 1000);
+    }
 }
 
 function startTypingTease(matchName) {
@@ -1688,15 +1692,14 @@ function handleMatchReply(miiName, message) {
     
     showToastNotification(`💬 ${miiName} replied!`);
     
-    // NEW: Rare chance for NPC to actually reply!
-    checkForRareReply(miiName);
+
 }
 
 
 function checkForRareReply(miiName) {
-    // 5% chance of getting a reply
+//1.0 = 100% 0.05 = 5%
     const replyChance = Math.random();
-    if (replyChance > 0.05) return;
+    if (replyChance > 1.0) return;
     
     // IMPORTANT: Stop the typing tease for this match
     if (typingIntervals[miiName]) {
@@ -1706,7 +1709,7 @@ function checkForRareReply(miiName) {
     }
     
     // Wait a random time before replying (3-8 seconds)
-    const replyDelay = 3000 + Math.random() * 5000;
+    const replyDelay = 2000 + Math.random() * 4000;
     
     setTimeout(() => {
         // Show typing indicator first
@@ -1738,12 +1741,17 @@ function checkForRareReply(miiName) {
             matchConversations[miiName] = matchConversations[miiName].filter(msg => msg.from !== 'typing');
             
             // Send the actual reply
-            const reply = getPersonalizedReply(miiName);
-            matchConversations[miiName].push({
-                from: 'match',
-                text: reply,
-                timestamp: Date.now()
-            });
+const reply = getPersonalizedReply(miiName);
+if (!reply) {
+    console.log(`${miiName} ignored the message`);
+    return; // Don't send anything
+}
+
+matchConversations[miiName].push({
+    from: 'match',
+    text: reply,
+    timestamp: Date.now()
+});
             
             if (currentMatchName === miiName) {
                 updateChatMessages();
@@ -1762,14 +1770,11 @@ function checkForRareReply(miiName) {
     }, replyDelay);
 }
 
-// NEW FUNCTION: Personalized replies for each character
 function getPersonalizedReply(miiName) {
     const replies = {
-
         'GABAGOOOOL': [
             'FORGET ABOUT IT'
         ],
-
         'Sentient Cheese': [
             'save me'
         ],
@@ -1782,12 +1787,15 @@ function getPersonalizedReply(miiName) {
         ],
         'Neighbor\'s WiFi': [
             'password: ilikeyou123'
-        ],
-
+        ]
     };
     
-    const characterReplies = replies[miiName] || ['...', 'hey', '*exists*'];
-    return characterReplies[Math.floor(Math.random() * characterReplies.length)];
+const characterReplies = replies[miiName];
+if (!characterReplies) {
+    console.log(`${miiName} doesn't have replies configured`);
+    return null; // No reply
+}
+return characterReplies[Math.floor(Math.random() * characterReplies.length)];
 }
 
 function showNotificationBadge(miiName) {
