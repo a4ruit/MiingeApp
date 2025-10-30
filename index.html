@@ -247,31 +247,29 @@
             min-height: 0;
         }
 
-        .match-notification {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            white-space: nowrap;
-            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
-            animation: slideDown 0.3s ease, pulse 2s infinite;
-            pointer-events: none;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
+                .match-notification {
+                    position: absolute;
+                    top: calc(100% + 8px);
+                    right: 16px;
+                    background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+                    color: white;
+                    padding: 8px 16px;
+                    border-radius: 16px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    white-space: nowrap;
+                    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
+                    animation: slideDown 0.3s ease;
+                    z-index: 100;
+                }
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
             }
-            50% {
-                transform: scale(1.05);
-            }
-        }
         
         .profile-name-age {
             display: flex;
@@ -438,18 +436,7 @@
             border-bottom: 1px solid #f0f0f0;
             border-radius: 20px 20px 0 0;
         }
-        
-        .chat-panel-header::before {
-            content: '';
-            position: absolute;
-            top: 6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 36px;
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
-        }
+
         
         .chat-panel-title {
             font-size: 20px;
@@ -555,14 +542,14 @@
 .typing-indicator {
     display: inline-block;
     background: #f0f0f0;
-    padding: 12px 16px;
+    padding: 8px 12px;
     border-radius: 16px 16px 16px 4px;
     margin-bottom: 12px;
 }
 
 .typing-indicator span {
-    height: 8px;
-    width: 8px;
+    height: 6px;
+    width: 6px;
     background: #999;
     border-radius: 50%;
     display: inline-block;
@@ -881,22 +868,22 @@
 </head>
 <body>
     <div class="app-container">
-        <div class="header">
-            <div class="header-content">
-                <div class="app-title">
-                    SwipeMe
-                    <div class="connection-dot" id="connectionDot"></div>
-                </div>
-                <div style="position: relative;">
+            <div class="header">
+                <div class="header-content" style="position: relative;">
+                    <div class="app-title">
+                        SwipeMe
+                        <div class="connection-dot" id="connectionDot"></div>
+                    </div>
                     <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChatPanel()">
                         💬 Chat
                     </button>
                     <div class="match-notification" id="matchNotification" style="display: none;">
-                        New match! 🎉
+                        Start chatting! 🎉
                     </div>
                 </div>
             </div>
-        <div class="main-content">
+
+            <div class="main-content">
             <div class="card-area" id="cardContainer"></div>
             
             <div class="swipe-actions">
@@ -1186,10 +1173,10 @@ function swipeRight() {
     showSwipeFeedback('like');
 
     const notification = document.getElementById('matchNotification');
-        notification.style.display = 'block';
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 4000);
+notification.style.display = 'block';
+setTimeout(() => {
+    notification.style.display = 'none';
+}, 4000);
     
     renderMatchTabs();
     updateChatToggleButton();
@@ -1218,6 +1205,8 @@ function toggleChatPanel() {
         renderMatchTabs();
         updateChatMessages();
     }
+    
+    updateBreadcrumbVisibility();
 }
 
 function updateChatToggleButton() {
@@ -1268,6 +1257,7 @@ function selectMatch(name) {
     currentMatchName = name;
     renderMatchTabs();
     updateSendButton();
+    updateBreadcrumbVisibility();
     
     const messageInput = document.getElementById('messageInput');
     messageInput.value = '';
@@ -1453,7 +1443,7 @@ function startTypingTease(matchName) {
         currentIndex++;
     }
     
-    const initialDelay = 3000 + Math.random() * 4000;
+    const initialDelay = 1500 + Math.random() * 2000;
     setTimeout(() => {
         showTypingBubble();
         typingIntervals[matchName] = setInterval(showTypingBubble, durations[0]);
@@ -1462,14 +1452,18 @@ function startTypingTease(matchName) {
 
 function showBreadcrumbButton() {
     // Check if button already exists
-    if (document.getElementById('breadcrumbBtn')) return;
+    if (document.getElementById('breadcrumbBtn')) {
+        // Update visibility based on current match
+        updateBreadcrumbVisibility();
+        return;
+    }
     
     const btn = document.createElement('button');
     btn.id = 'breadcrumbBtn';
     btn.innerHTML = '🍞 Send Breadcrumb';
     btn.style.cssText = `
         position: fixed;
-        bottom: 20px;
+        bottom: 140px;
         left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(135deg, #f4a460 0%, #daa520 100%);
@@ -1484,12 +1478,28 @@ function showBreadcrumbButton() {
         box-shadow: 0 4px 20px rgba(244, 164, 96, 0.5);
         animation: bounceIn 0.5s ease;
         font-family: 'Inter', sans-serif;
+        display: none;
     `;
     
     btn.onclick = sendBreadcrumb;
     document.body.appendChild(btn);
     
+    updateBreadcrumbVisibility();
     showToastNotification('🍞 Breadcrumb unlocked! Your match will love this!');
+}
+
+function updateBreadcrumbVisibility() {
+    const btn = document.getElementById('breadcrumbBtn');
+    if (!btn) return;
+    
+    const breadcrumbMatches = ['Capybara CEO', 'Sentient Cheese', 'Gerald'];
+    const panel = document.getElementById('chatPanel');
+    
+    if (panel.classList.contains('open') && breadcrumbMatches.includes(currentMatchName)) {
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none';
+    }
 }
 
 function sendBreadcrumb() {
