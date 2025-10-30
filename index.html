@@ -1697,7 +1697,7 @@ function handleMatchReply(miiName, message) {
 
 
 function checkForRareReply(miiName) {
-//1.0 = 100% 0.05 = 5%
+    // 1.0 = 100% 0.05 = 5%
     const replyChance = Math.random();
     if (replyChance > 1.0) return;
     
@@ -1741,17 +1741,21 @@ function checkForRareReply(miiName) {
             matchConversations[miiName] = matchConversations[miiName].filter(msg => msg.from !== 'typing');
             
             // Send the actual reply
-const reply = getPersonalizedReply(miiName);
-if (!reply) {
-    console.log(`${miiName} ignored the message`);
-    return; // Don't send anything
-}
+            const reply = getPersonalizedReply(miiName);
+            if (!reply) {
+                console.log(`${miiName} ignored the message`);
+                return; // Don't send anything
+            }
 
-matchConversations[miiName].push({
-    from: 'match',
-    text: reply,
-    timestamp: Date.now()
-});
+            // Add ephemeral reply message (will be removed after display)
+            const ephemeralMsg = {
+                from: 'match',
+                text: reply,
+                timestamp: Date.now(),
+                ephemeral: true
+            };
+            
+            matchConversations[miiName].push(ephemeralMsg);
             
             if (currentMatchName === miiName) {
                 updateChatMessages();
@@ -1765,6 +1769,15 @@ matchConversations[miiName].push({
             }
             
             console.log(`✨ RARE REPLY! ${miiName} actually responded!`);
+            
+            // Remove the ephemeral message after 5 seconds
+            setTimeout(() => {
+                matchConversations[miiName] = matchConversations[miiName].filter(msg => msg !== ephemeralMsg);
+                if (currentMatchName === miiName) {
+                    updateChatMessages();
+                }
+                console.log(`💨 ${miiName}'s reply faded away...`);
+            }, 5000);
         }, typingDuration);
         
     }, replyDelay);
