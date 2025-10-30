@@ -864,6 +864,145 @@
         #breadcrumbBtn:active {
             transform: translateX(-50%) scale(0.95) !important;
         }
+
+        body.void-mode {
+    background: #fff;
+}
+
+.void-mode .app-container {
+    background: #000;
+}
+
+.void-mode .header {
+    background: #000;
+    border-bottom: 1px solid #333;
+}
+
+.void-mode .app-title {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.void-mode .chat-toggle-btn {
+    background: #000;
+    color: #fff;
+    border-color: #fff;
+}
+
+.void-mode .chat-toggle-btn:hover {
+    background: #fff;
+    color: #000;
+}
+
+.void-mode .main-content {
+    background: #1a1a1a;
+}
+
+.void-mode .card-area {
+    background: #1a1a1a;
+}
+
+.void-mode .profile-card {
+    background: #000;
+    border: 1px solid #333;
+}
+
+.void-mode .profile-name,
+.void-mode .profile-age {
+    color: #fff;
+}
+
+.void-mode .profile-bio {
+    color: #ccc;
+}
+
+.void-mode .interest-tag {
+    background: #222;
+    color: #fff;
+    border-color: #444;
+}
+
+.void-mode .swipe-actions {
+    background: #000;
+    border-top: 1px solid #333;
+}
+
+.void-mode .chat-panel {
+    background: #000;
+}
+
+.void-mode .chat-panel-header {
+    background: #000;
+    border-bottom: 1px solid #333;
+}
+
+.void-mode .close-chat-btn {
+    background: #222;
+    color: #fff;
+}
+
+.void-mode .match-tabs {
+    background: #000;
+    border-bottom: 1px solid #333;
+}
+
+.void-mode .match-tab {
+    background: #222;
+    color: #ccc;
+}
+
+.void-mode .match-tab.active {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+    color: #fff;
+}
+
+.void-mode .chat-messages {
+    background: #1a1a1a;
+}
+
+.void-mode .empty-chat {
+    color: #999;
+}
+
+.void-mode .empty-chat p:first-child {
+    color: #ccc;
+}
+
+.void-mode .typing-indicator {
+    background: #222;
+}
+
+.void-mode .chat-input-area {
+    background: #000;
+    border-top: 1px solid #333;
+}
+
+.void-mode .chat-input {
+    background: #1a1a1a;
+    border-color: #333;
+    color: #fff;
+}
+
+.void-mode .chat-input:focus {
+    background: #222;
+}
+
+.void-mode .debug-info {
+    background: rgba(0, 0, 0, 0.95);
+    color: #999;
+    border-color: #333;
+}
+
+.void-mode .no-more-cards h2 {
+    color: #fff;
+}
+
+.void-mode .no-more-cards p {
+    color: #ccc;
+}
+
     </style>
 </head>
 <body>
@@ -947,22 +1086,24 @@ let matches = [];
 let currentMatchName = null;
 let messagedMatches = new Set();
 let matchConversations = {};
-const GHOST_THRESHOLD = 10;
+const GHOST_THRESHOLD = 6;
+let hasShownGhostNotification = false;
 let typingIntervals = {};
 
 const profiles = [
     { name: 'Crab', age: '2', emoji: '🦀', bio: 'I walk sideways and I\'m not sorry about it. Will pinch you on the first date (romantically). Living my best crustacean life.', interests: ['🏖️ Beaches', '🪨 Hiding', '🌊 Scuttling'] },
-    { name: 'The Void', age: '∞', emoji: '🕳️', bio: 'Endless darkness seeking same. Into staring contests (I always win). No baggage because I contain all of existence.', interests: ['👁️ Staring', '🌌 Existing', '❓ Mystery'] },
-    { name: 'GABAGOOOOL', age: '32', emoji: '🥩', bio: 'OVA HEREEEE', interests: ['🍖' ] },
-    { name: 'Gerald', age: '73', emoji: '🦆', bio: 'Just a duck trying to find love in this crazy pond. I have bread. You have bread? We should share bread.', interests: ['🍞 Bread', '💦 Puddles', '🦆 Quacking'] },
-    { name: 'Microwave', age: '12', emoji: '📱', bio: 'MMMMMMMMMMMMMM. I heat things up fast. Spinning plate included. Will never judge your 3am leftover HSP struggle meal.', interests: ['🔥 Heating', '⏰ Beeping', '🍕 Leftovers'] },
-    { name: 'Existential Dread', age: '??', emoji: '😰', bio: 'Are we real? chat is this real? What if we match and it means nothing? Actually that sounds perfect. Let\'s be anxious together.', interests: ['🤔 Overthinking', '😱 Panicking', '🌙 3AM Thoughts'] },
-    { name: 'Capybara CEO', age: '5', emoji: '🐹', bio: 'Founder of 6 startups and counting. Quit my big 4 job to pursue cryto', interests: ['🛁 Hot Springs', '🍊 Oranges', '😌 NFT\'s'] },
-    { name: 'Sentient Cheese', age: '69', emoji: '🧀', bio: 'I\'ve been aging gracefully in a cave for years. Very mature for my age. Holey but whole. Not lactose intolerant people only.', interests: ['🍷 Wine', '🕳️ Holes', '🧂 Salt'] },
     { name: 'Traffic Cone', age: '8', emoji: '🚧', bio: 'I stand out in a crowd. Orange is my colour year-round. Looking for someone to respect my boundaries (literally I mark them).', interests: ['🚗 Roads', '⚠️ Safety', '🟠 Orange'] },
+    { name: 'Gerald', age: '73', emoji: '🦆', bio: 'Just a duck trying to find love in this crazy pond. I have bread. You have bread? We should share bread.', interests: ['🍞 Bread', '💦 Puddles', '🦆 Quacking'] },
+    { name: 'Microwave', age: '12', emoji: '♨️', bio: 'MMMMMMMMMMMMMM. I heat things up fast. Spinning plate included. Will never judge your 3am leftover HSP struggle meal.', interests: ['🔥 Heating', '⏰ Beeping', '🍕 Leftovers'] },
+    { name: 'GABAGOOOOL', age: '32', emoji: '🥩', bio: 'OVA HEREEEE', interests: ['🍖' ] },
+    { name: 'Existential Dread', age: '??', emoji: '😰', bio: 'Are we real? chat is this real? What if we match and it means nothing? Actually that sounds perfect. Let\'s be anxious together.', interests: ['🤔 Overthinking', '😱 Panicking', '🌙 3AM Thoughts'] },
+    { name: 'Capybara CEO', age: '6', emoji: '🐹', bio: 'Founder of 6 startups and counting. Quit my big 4 job to pursue cryto', interests: ['🛁 Hot Springs', '🍊 Oranges', '😌 NFT\'s'] },
+    { name: 'Sentient Cheese', age: '69', emoji: '🧀', bio: 'I\'ve been aging gracefully in a cave for years. Very mature for my age. Holey but whole. Not lactose intolerant people only.', interests: ['🍷 Wine', '🕳️ Holes', '🧂 Salt'] },
     { name: 'Sock Thief', age: '1', emoji: '🧦', bio: 'Your dryer\'s worst nightmare. I have a collection of 847 unmatched socks. Come over and try to find your pair. You won\'t.', interests: ['👕 Laundry', '🕵️ Stealing', '🏠 Dryers'] },
+    { name: 'The Void', age: '∞', emoji: '🕳️', bio: 'Endless darkness seeking same. Into staring contests (I always win). No baggage because I contain all of existence.', interests: ['👁️ Staring', '🌌 Existing', '❓ Mystery'] },
     { name: 'Houseplant', age: '3', emoji: '🪴', bio: 'I literally just sit here and photosynthesise. Water me on Tuesdays. Spider mites need not apply. Cat owners swipe left.', interests: ['☀️ Sunlight', '💧 Water', '🌱 Growing'] },
-    { name: 'Neighbor\'s WiFi', age: '21', emoji: '📶', bio: 'Password protected but willing to share with the right person. Strong connection guaranteed. Sometimes I go down but I always come back up.', interests: ['💻 Connection', '🔐 Security', '⚡ Speed'] }
+    { name: 'Neighbor\'s WiFi', age: '21', emoji: '📶', bio: 'Password protected but willing to share with the right person. Strong connection guaranteed. Sometimes I go down but I always come back up.', interests: ['💻 Connection', '🔐 Security', '⚡ Speed'] },
+    { name: 'You', age: '??', emoji: '🪞', bio: 'We\'re all trapped in here together.', interests: ['👁️ Watching', '🔄 Swiping', '💭 Existing'] }
 ];
 
 function connectWebSocket() {
@@ -1381,6 +1522,12 @@ function sendMessage() {
     
     startTypingTease(currentMatchName);
     
+    // Activate void mode
+    if (currentMatchName === 'The Void') {
+        document.body.classList.add('void-mode');
+        showToastNotification('🕳️ The Void consumes all...');
+    }
+    
     if (currentMatchName === 'Capybara CEO' || currentMatchName === 'Sentient Cheese' || currentMatchName === 'Gerald') {
         console.log(`🍞 User messaged ${currentMatchName}! Unlocking breadcrumb feature...`);
         setTimeout(() => {
@@ -1388,12 +1535,13 @@ function sendMessage() {
         }, 500);
     }
     
-    if (messagedMatches.size === GHOST_THRESHOLD) {
-        console.log(`🎉 User has messaged ${GHOST_THRESHOLD} matches! Unlocking ghost feature...`);
-        setTimeout(() => {
-            showGhostNotification();
-        }, 1000);
-    }
+if (messagedMatches.size >= GHOST_THRESHOLD && !hasShownGhostNotification) {
+    hasShownGhostNotification = true;
+    console.log(`🎉 User has messaged ${messagedMatches.size} matches! Unlocking ghost feature...`);
+    setTimeout(() => {
+        showGhostNotification();
+    }, 1000);
+}
 }
 
 function startTypingTease(matchName) {
