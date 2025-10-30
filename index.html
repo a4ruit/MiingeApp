@@ -1520,11 +1520,23 @@ function sendMessage() {
     updateDebugInfo(`Sent to ${currentMatchName}`);
     updateChatMessages();
     
-    // ADD THIS LINE HERE - Check for rare reply when user sends message
-    checkForRareReply(currentMatchName);
+    // Check if this NPC has replies configured
+    const hasConfiguredReply = getPersonalizedReply(currentMatchName) !== null;
     
-    // startTypingTease will be stopped by checkForRareReply if a reply happens
-    startTypingTease(currentMatchName);
+    // Determine if rare reply will happen
+    const replyChance = Math.random();
+    const REPLY_PROBABILITY = 0.99; // 15% chance - adjust this value (0.0 to 1.0)
+    const willReply = hasConfiguredReply && (replyChance <= REPLY_PROBABILITY);
+    
+    if (willReply) {
+        // Rare reply will happen - trigger it
+        console.log(`🎲 ${currentMatchName} will send a rare reply! (${Math.round(replyChance * 100)}% <= ${Math.round(REPLY_PROBABILITY * 100)}%)`);
+        triggerRareReply(currentMatchName);
+    } else {
+        // No rare reply - start typing tease
+        console.log(`💭 ${currentMatchName} will just tease (${Math.round(replyChance * 100)}% > ${Math.round(REPLY_PROBABILITY * 100)}% or no reply configured)`);
+        startTypingTease(currentMatchName);
+    }
     
     // Activate void mode
     if (currentMatchName === 'The Void') {
@@ -1549,8 +1561,13 @@ function sendMessage() {
 }
 
 function startTypingTease(matchName) {
+    console.log(`💭 Attempting to start typing tease for ${matchName}`);
+    
+    // Clear any existing interval first
     if (typingIntervals[matchName]) {
         clearInterval(typingIntervals[matchName]);
+        delete typingIntervals[matchName];
+        console.log(`🧹 Cleared existing typing interval for ${matchName}`);
     }
     
     const durations = [8000, 15000, 12000, 20000, 10000];
@@ -1559,9 +1576,16 @@ function startTypingTease(matchName) {
     let currentIndex = 0;
     
     function showTypingBubble() {
+        // Check if interval was stopped externally (by rare reply)
+        if (!typingIntervals[matchName]) {
+            console.log(`⚠️ Typing interval for ${matchName} was stopped externally, halting...`);
+            return;
+        }
+        
         if (elapsed >= totalDuration) {
             clearInterval(typingIntervals[matchName]);
             delete typingIntervals[matchName];
+            console.log(`⏰ Typing tease completed for ${matchName} after ${totalDuration}ms`);
             return;
         }
         
@@ -1569,10 +1593,14 @@ function startTypingTease(matchName) {
             matchConversations[matchName] = [];
         }
         
-        matchConversations[matchName].push({
+        // Add typing indicator
+        const typingMsg = {
             from: 'typing',
-            timestamp: Date.now()
-        });
+            timestamp: Date.now(),
+            isRareReplyTyping: false
+        };
+        
+        matchConversations[matchName].push(typingMsg);
         
         if (currentMatchName === matchName) {
             updateChatMessages();
@@ -1585,9 +1613,12 @@ function startTypingTease(matchName) {
         
         const displayTime = 3000 + Math.random() * 3000;
         setTimeout(() => {
-            matchConversations[matchName] = matchConversations[matchName].filter(msg => msg.from !== 'typing');
-            if (currentMatchName === matchName) {
-                updateChatMessages();
+            // Only remove if interval still exists (hasn't been stopped by rare reply)
+            if (typingIntervals[matchName]) {
+                matchConversations[matchName] = matchConversations[matchName].filter(msg => msg !== typingMsg);
+                if (currentMatchName === matchName) {
+                    updateChatMessages();
+                }
             }
         }, displayTime);
         
@@ -1595,12 +1626,27 @@ function startTypingTease(matchName) {
         currentIndex++;
     }
     
-    const initialDelay = 1500 + Math.random() * 2000;
+        const initialDelay = 1000;
+    
+    // Mark that we're ABOUT to start a typing tease (before the delay)
+    // Use a temporary marker to prevent race conditions
+    typingIntervals[matchName] = 'PENDING';
+    
     setTimeout(() => {
+        // Check if the interval was cleared during the initial delay (meaning rare reply started)
+        if (typingIntervals[matchName] !== 'PENDING') {
+            console.log(`⚠️ Typing for ${matchName} was cancelled during initial delay (rare reply likely started)`);
+            return;
+        }
+        
         showTypingBubble();
         typingIntervals[matchName] = setInterval(showTypingBubble, durations[0]);
+        console.log(`✅ Started typing tease for ${matchName}, interval ID: ${typingIntervals[matchName]}`);
     }, initialDelay);
 }
+
+
+
 
 function showBreadcrumbButton() {
     // Check if button already exists
@@ -1696,34 +1742,48 @@ function handleMatchReply(miiName, message) {
 }
 
 
-function checkForRareReply(miiName) {
-    // 1.0 = 100% 0.05 = 5%
-    const replyChance = Math.random();
-    if (replyChance > 1.0) return;
+function triggerRareReply(miiName) {
+    console.log(`✨ Triggering rare reply for ${miiName}!`);
     
-    // IMPORTANT: Stop the typing tease for this match
+    // CRITICAL: Stop any existing typing tease interval for this match
     if (typingIntervals[miiName]) {
         clearInterval(typingIntervals[miiName]);
         delete typingIntervals[miiName];
-        console.log(`⏹️ Stopped typing tease for ${miiName} - they're sending a real reply!`);
+        console.log(`⏹️ Stopped typing tease interval for ${miiName}`);
     }
     
-    // Wait a random time before replying (3-8 seconds)
-    const replyDelay = 2000 + Math.random() * 4000;
+    // Clear any existing typing bubbles immediately
+    if (matchConversations[miiName]) {
+        matchConversations[miiName] = matchConversations[miiName].filter(msg => msg.from !== 'typing');
+        if (currentMatchName === miiName) {
+            updateChatMessages();
+        }
+    }
+    
+    // Wait a random time before replying (2-6 seconds)
+    const replyDelay = 1000;
     
     setTimeout(() => {
+        // Double-check the interval is stopped (paranoid check)
+        if (typingIntervals[miiName]) {
+            clearInterval(typingIntervals[miiName]);
+            delete typingIntervals[miiName];
+            console.log(`⏹️ [SAFETY] Stopped lingering typing tease for ${miiName}`);
+        }
+        
         // Show typing indicator first
         if (!matchConversations[miiName]) {
             matchConversations[miiName] = [];
         }
         
-        // Clear any existing typing bubbles before adding new one
-        matchConversations[miiName] = matchConversations[miiName].filter(msg => msg.from !== 'typing');
-        
-        matchConversations[miiName].push({
+        // Add typing indicator (store reference to remove it later)
+        const typingMsg = {
             from: 'typing',
-            timestamp: Date.now()
-        });
+            timestamp: Date.now(),
+            isRareReplyTyping: true
+        };
+        
+        matchConversations[miiName].push(typingMsg);
         
         if (currentMatchName === miiName) {
             updateChatMessages();
@@ -1737,25 +1797,26 @@ function checkForRareReply(miiName) {
         // Wait 2-4 seconds of "typing" before sending actual message
         const typingDuration = 2000 + Math.random() * 2000;
         setTimeout(() => {
-            // Remove typing indicator
-            matchConversations[miiName] = matchConversations[miiName].filter(msg => msg.from !== 'typing');
+            // Remove only the rare reply typing indicator
+            matchConversations[miiName] = matchConversations[miiName].filter(msg => msg !== typingMsg);
             
             // Send the actual reply
             const reply = getPersonalizedReply(miiName);
+            
             if (!reply) {
-                console.log(`${miiName} ignored the message`);
-                return; // Don't send anything
+                console.error(`ERROR: ${miiName} was triggered for rare reply but has no configured reply!`);
+                return;
             }
 
-            // Add ephemeral reply message (will be removed after display)
-            const ephemeralMsg = {
+            // Add PERMANENT reply message (NOT ephemeral - it stays forever!)
+            const replyMsg = {
                 from: 'match',
                 text: reply,
-                timestamp: Date.now(),
-                ephemeral: true
+                timestamp: Date.now()
+                // NO ephemeral property - this makes it permanent!
             };
             
-            matchConversations[miiName].push(ephemeralMsg);
+            matchConversations[miiName].push(replyMsg);
             
             if (currentMatchName === miiName) {
                 updateChatMessages();
@@ -1768,20 +1829,15 @@ function checkForRareReply(miiName) {
                 showNotificationBadge(miiName);
             }
             
-            console.log(`✨ RARE REPLY! ${miiName} actually responded!`);
+            console.log(`💬 RARE REPLY: ${miiName} said "${reply}" (PERMANENT)`);
             
-            // Remove the ephemeral message after 5 seconds
-            setTimeout(() => {
-                matchConversations[miiName] = matchConversations[miiName].filter(msg => msg !== ephemeralMsg);
-                if (currentMatchName === miiName) {
-                    updateChatMessages();
-                }
-                console.log(`💨 ${miiName}'s reply faded away...`);
-            }, 5000);
+            // NO setTimeout to remove the message - it stays forever!
+            
         }, typingDuration);
         
     }, replyDelay);
 }
+
 
 function getPersonalizedReply(miiName) {
     const replies = {
