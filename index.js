@@ -15,6 +15,16 @@ const server = http.createServer((req, res) => {
             res.writeHead(200, { 'Content-Type': 'text/html' });
             res.end(data);
         });
+    } else if (req.url === '/admincommand.html') {
+        fs.readFile(path.join(__dirname, 'admincommand.html'), (err, data) => {
+            if (err) {
+                res.writeHead(500);
+                res.end('Error loading admincommand.html');
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(data);
+        });
     } else {
         res.writeHead(404);
         res.end('Not found');
@@ -75,6 +85,7 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`WebSocket server running on ws://localhost:${PORT}`);
     console.log(`\n🌐 Access from other devices:`);
     console.log(`   Web: http://[YOUR_IP]:${PORT}`);
+    console.log(`   Admin: http://[YOUR_IP]:${PORT}/admincommand.html`);
     console.log(`   WebSocket: ws://[YOUR_IP]:${PORT}`);
     console.log(`\n💡 Replace [YOUR_IP] with your computer's IP address`);
 });
