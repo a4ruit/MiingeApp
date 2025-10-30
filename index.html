@@ -1687,6 +1687,107 @@ function handleMatchReply(miiName, message) {
     }
     
     showToastNotification(`💬 ${miiName} replied!`);
+    
+    // NEW: Rare chance for NPC to actually reply!
+    checkForRareReply(miiName);
+}
+
+
+function checkForRareReply(miiName) {
+    // 5% chance of getting a reply
+    const replyChance = Math.random();
+    if (replyChance > 0.05) return;
+    
+    // IMPORTANT: Stop the typing tease for this match
+    if (typingIntervals[miiName]) {
+        clearInterval(typingIntervals[miiName]);
+        delete typingIntervals[miiName];
+        console.log(`⏹️ Stopped typing tease for ${miiName} - they're sending a real reply!`);
+    }
+    
+    // Wait a random time before replying (3-8 seconds)
+    const replyDelay = 3000 + Math.random() * 5000;
+    
+    setTimeout(() => {
+        // Show typing indicator first
+        if (!matchConversations[miiName]) {
+            matchConversations[miiName] = [];
+        }
+        
+        // Clear any existing typing bubbles before adding new one
+        matchConversations[miiName] = matchConversations[miiName].filter(msg => msg.from !== 'typing');
+        
+        matchConversations[miiName].push({
+            from: 'typing',
+            timestamp: Date.now()
+        });
+        
+        if (currentMatchName === miiName) {
+            updateChatMessages();
+        }
+        
+        const panel = document.getElementById('chatPanel');
+        if (!panel.classList.contains('open') || currentMatchName !== miiName) {
+            showNotificationBadge(miiName);
+        }
+        
+        // Wait 2-4 seconds of "typing" before sending actual message
+        const typingDuration = 2000 + Math.random() * 2000;
+        setTimeout(() => {
+            // Remove typing indicator
+            matchConversations[miiName] = matchConversations[miiName].filter(msg => msg.from !== 'typing');
+            
+            // Send the actual reply
+            const reply = getPersonalizedReply(miiName);
+            matchConversations[miiName].push({
+                from: 'match',
+                text: reply,
+                timestamp: Date.now()
+            });
+            
+            if (currentMatchName === miiName) {
+                updateChatMessages();
+            }
+            
+            showToastNotification(`✨ ${miiName} sent a rare reply!`);
+            
+            const panel = document.getElementById('chatPanel');
+            if (!panel.classList.contains('open') || currentMatchName !== miiName) {
+                showNotificationBadge(miiName);
+            }
+            
+            console.log(`✨ RARE REPLY! ${miiName} actually responded!`);
+        }, typingDuration);
+        
+    }, replyDelay);
+}
+
+// NEW FUNCTION: Personalized replies for each character
+function getPersonalizedReply(miiName) {
+    const replies = {
+
+        'GABAGOOOOL': [
+            'FORGET ABOUT IT'
+        ],
+
+        'Sentient Cheese': [
+            'save me'
+        ],
+        'Sock Thief': [
+            'I have your other sock btw 🧦',
+            'your dryer misses me'
+        ],
+        'Houseplant': [
+            'water me? 💧'
+        ],
+        'Neighbor\'s WiFi': [
+            'password: ilikeyou123'
+        ],
+
+    };
+    
+    const characterReplies = replies[miiName] || ['...', 'hey', '*exists*'];
+    return characterReplies[Math.floor(Math.random() * characterReplies.length)];
 }
 
 function showNotificationBadge(miiName) {
